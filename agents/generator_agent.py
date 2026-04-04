@@ -35,5 +35,5 @@ class GeneratorAgent:
 
         self.chain = self.prompt | self.model | StrOutputParser()
 
-    def create_prompt(self, input_sentence: str):
+    def create_prompt(self, input_sentence: str) -> str:
         return self.chain.invoke({"input_sentence": input_sentence})

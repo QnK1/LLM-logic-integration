@@ -2,12 +2,7 @@ import os
 from dotenv import load_dotenv
 
 from agents.generator_agent import GeneratorAgent
-
-from nltk import TableauProver
-from nltk.sem import Expression
-import nltk
-
-nltk.download("punkt")
+from solvers.nltk_solver import NLTKSolver
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -15,14 +10,11 @@ api_key = os.getenv("GEMINI_API_KEY")
 sentence = "Every human is good except for Ted"
 
 generator_agent = GeneratorAgent(api_key, model="gemini-2.5-flash")
-result = generator_agent.create_prompt(sentence)
+agent_parsed_sentence = generator_agent.create_prompt(sentence)
+goal = "-good(ted)"
+print(agent_parsed_sentence)
 
-read_expr = Expression.fromstring
-expr = read_expr(result)
-premises = [expr]
-goal = read_expr("-good(ted)")
-
-prover = TableauProver()
-result = prover.prove(goal, premises)
-print(result)
-
+solver = NLTKSolver()
+solver.set_premises(agent_parsed_sentence)
+solver.set_goal(goal)
+print(solver.prove_goal())
