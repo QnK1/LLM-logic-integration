@@ -25,3 +25,4 @@ goal = read_expr("-good(ted)")
 prover = TableauProver()
 result = prover.prove(goal, premises)
 print(result)
+
