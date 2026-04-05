@@ -9,7 +9,7 @@ from system_prompts.system_prompts import SystemPrompt
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 
-sentence = "Every human is good except for Ted"
+sentence = "Every human is mortal. Ted is immortal. Is Ted human?"
 
 generator_agent = GeneratorAgent(api_key, model="gemini-2.5-flash")
 agent_parsed_sentence = generator_agent.create_prompt(sentence)
