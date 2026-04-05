@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from agents.generator_agent import GeneratorAgent
 from solvers.nltk_solver import NLTKSolver
 
+from system_prompts.system_prompts import SystemPrompt
+
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 
