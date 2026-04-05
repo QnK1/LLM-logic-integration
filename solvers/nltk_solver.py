@@ -11,8 +11,8 @@ class NLTKSolver:
         self.premises = None
         self.goal = None
 
-    def set_premises(self, logic_formula: str) -> None:
-        self.premises = [self.read_expr(logic_formula)]
+    def set_premises(self, logic_formulas: list[str]) -> None:
+        self.premises = [self.read_expr(formula) for formula in logic_formulas]
 
     def set_goal(self, logic_formula: str) -> None:
         self.goal = self.read_expr(logic_formula)

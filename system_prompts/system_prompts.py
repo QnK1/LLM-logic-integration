@@ -8,10 +8,10 @@ class SystemPrompt(Enum):
 
             OUTPUT FORMAT:
             Return ONLY a JSON object with this structure:
-            {
+            {{
               "premises": ["formula1", "formula2"],
               "goal": "formula_to_prove"
-            }
+            }}
 
             LOGIC SYNTAX:
             - Predicates: human(x), mortal(x) (lowercase, no spaces)
@@ -27,8 +27,8 @@ class SystemPrompt(Enum):
 
             EXAMPLE:
             Input: "Every human is mortal, therefore Socrates is mortal."
-            Output: {
+            Output: {{
               "premises": ["all x.(human(x) -> mortal(x))", "human(socrates)"],
               "goal": "mortal(socrates)"
-            }
+            }}
         """

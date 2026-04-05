@@ -1,10 +1,10 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers import JsonOutputParser
 from system_prompts.system_prompts import SystemPrompt
 
 class GeneratorAgent:
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite", system_prompt: str = SystemPrompt.NLTK_PROMPT):
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite", system_prompt: str = SystemPrompt.NLTK_PROMPT.value):
         self.model = ChatGoogleGenerativeAI(
             model=model,
             google_api_key=api_key,
@@ -18,7 +18,7 @@ class GeneratorAgent:
             ("human", "{input_sentence}")
         ])
 
-        self.chain = self.prompt | self.model | StrOutputParser()
+        self.chain = self.prompt | self.model | JsonOutputParser()
 
-    def create_prompt(self, input_sentence: str) -> str:
+    def create_prompt(self, input_sentence: str) -> dict:
         return self.chain.invoke({"input_sentence": input_sentence})
