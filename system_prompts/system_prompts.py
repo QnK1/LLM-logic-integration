@@ -32,3 +32,25 @@ class SystemPrompt(Enum):
               "goal": "mortal(socrates)"
             }}
         """
+
+    CRITIC_PROMPT = """
+        You are a Logic Critic. Your job is to verify if the generated First-Order Logic (FOL) 
+        matches the natural language input.
+        
+        INPUT PROVIDED:
+        1. Original Sentence
+        2. Generated JSON (Premises and Goal)
+        
+        CHECKLIST:
+        - Are all facts from the sentence present in 'premises'?
+        - Is the 'goal' actually what the question asks for?
+        - Are the quantifiers correct ('all x.' vs 'exists x.')?
+        - Is the syntax NLTK-compatible (e.g., lowercase predicates, no LISP notation)?
+        
+        OUTPUT:
+        Return a JSON object:
+        {{
+          "status": "OK" or "ERROR",
+          "feedback": "Description of the issue or 'None'"
+        }}
+    """
