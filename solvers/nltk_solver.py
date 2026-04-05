@@ -1,10 +1,11 @@
 import nltk
 from nltk import TableauProver
 from nltk.sem import Expression
+from solvers.solver import Solver
 
 nltk.download("punkt")
 
-class NLTKSolver:
+class NLTKSolver(Solver):
     def __init__(self):
         self.read_expr = Expression.fromstring
         self.prover = TableauProver()
