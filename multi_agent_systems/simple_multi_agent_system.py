@@ -1,7 +1,7 @@
 from agents.critic_agent import CriticAgent
 from agents.generator_agent import GeneratorAgent
 from multi_agent_systems.multi_agent_system import MultiAgentSystem
-import logging
+from utils.mas_logger import mas_logger
 
 class SimpleMultiAgentSystem(MultiAgentSystem):
     def __init__(self, max_iterations: int,
@@ -21,11 +21,11 @@ class SimpleMultiAgentSystem(MultiAgentSystem):
         for i in range(self.max_iterations):
             generator_output = self.generator_agent.create_prompt(generator_input)
             if self.verbose:
-                logging.info(f"Generator output in iteration {i + 1}: {generator_output}")
+                mas_logger.info(f"Generator output in iteration {i + 1}: {generator_output}")
 
             critic_output = self.critic_agent.verify_logic(original_sentence, generator_output)
             if self.verbose:
-                logging.info(f"Critic output in iteration {i + 1}: {critic_output}")
+                mas_logger.info(f"Critic output in iteration {i + 1}: {critic_output}")
 
             if critic_output["status"] == "ERROR":
                 generator_input = (
@@ -42,11 +42,11 @@ class SimpleMultiAgentSystem(MultiAgentSystem):
             self.solver.set_goal(goal)
             result = self.solver.prove_goal()
             if self.verbose:
-                logging.info(f"MAS finished the task after {i + 1} iterations, and determined the following result: {result}")
+                mas_logger.info(f"MAS finished the task after {i + 1} iterations, and determined the following result: {result}")
 
             return result
 
         if self.verbose:
-            logging.info(f"Maximum number of iterations ({self.max_iterations}) exceeded, MAS reached no conclusions.")
+            mas_logger.info(f"Maximum number of iterations ({self.max_iterations}) exceeded, MAS reached no conclusions.")
 
         return None
