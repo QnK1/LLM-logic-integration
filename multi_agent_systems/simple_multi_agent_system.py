@@ -1,14 +1,16 @@
 from agents.critic_agent import CriticAgent
 from agents.generator_agent import GeneratorAgent
 from multi_agent_systems.multi_agent_system import MultiAgentSystem
+from solvers.solver import Solver
 from utils.mas_logger import mas_logger
 
 class SimpleMultiAgentSystem(MultiAgentSystem):
     def __init__(self, max_iterations: int,
                  generator_agent: GeneratorAgent,
                  critic_agent: CriticAgent,
-                 solver,
-                 verbose=True):
+                 solver: Solver,
+                 verbose: bool = True):
+
         super().__init__(max_iterations)
         self.generator_agent = generator_agent
         self.critic_agent = critic_agent

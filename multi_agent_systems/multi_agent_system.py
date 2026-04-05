@@ -6,5 +6,5 @@ class MultiAgentSystem(ABC):
         self.max_iterations = max_iterations
 
     @abstractmethod
-    def run(self, sentence: str):
+    def run(self, sentence: str) -> bool:
         pass

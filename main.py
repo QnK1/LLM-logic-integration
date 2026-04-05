@@ -6,7 +6,6 @@ from agents.generator_agent import GeneratorAgent
 from multi_agent_systems.simple_multi_agent_system import SimpleMultiAgentSystem
 from solvers.nltk_solver import NLTKSolver
 
-
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 

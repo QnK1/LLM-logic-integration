@@ -1,7 +1,6 @@
 import logging
 import sys
 
-
 def setup_mas_logger(name="MAS_SYSTEM"):
     logger = logging.getLogger(name)
 
