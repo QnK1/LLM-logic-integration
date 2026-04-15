@@ -1,4 +1,7 @@
 langchain_core==1.2.26
 langchain_google_genai==4.2.1
 nltk==3.9.4
-python-dotenv==1.2.2
+python-dotenv~=1.2.1
+langchain-google-genai~=4.2.1
+langchain-core~=1.2.24
+z3-solver~=4.16.0.0
