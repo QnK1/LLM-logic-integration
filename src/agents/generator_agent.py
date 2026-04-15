@@ -1,7 +1,7 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from system_prompts.system_prompts import SystemPrompt
+from src.system_prompts.system_prompts import SystemPrompt
 
 class GeneratorAgent:
     def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite", system_prompt: str = SystemPrompt.NLTK_GENERATOR_PROMPT.value):

@@ -1,7 +1,7 @@
 import nltk
 from nltk import TableauProver
 from nltk.sem import Expression
-from solvers.solver import Solver
+from src.solvers.solver import Solver
 
 nltk.download("punkt")
 

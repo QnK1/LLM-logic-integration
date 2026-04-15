@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
 
-from agents.critic_agent import CriticAgent
-from agents.generator_agent import GeneratorAgent
-from multi_agent_systems.simple_multi_agent_system import SimpleMultiAgentSystem
-from solvers.nltk_solver import NLTKSolver
+from src.agents.critic_agent import CriticAgent
+from src.agents.generator_agent import GeneratorAgent
+from src.multi_agent_systems.simple_multi_agent_system import SimpleMultiAgentSystem
+from src.solvers.nltk_solver import NLTKSolver
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")

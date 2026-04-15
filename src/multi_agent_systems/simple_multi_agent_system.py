@@ -1,8 +1,8 @@
-from agents.critic_agent import CriticAgent
-from agents.generator_agent import GeneratorAgent
-from multi_agent_systems.multi_agent_system import MultiAgentSystem
-from solvers.solver import Solver
-from utils.mas_logger import mas_logger
+from src.agents.critic_agent import CriticAgent
+from src.agents.generator_agent import GeneratorAgent
+from src.multi_agent_systems.multi_agent_system import MultiAgentSystem
+from src.solvers.solver import Solver
+from src.utils.mas_logger import mas_logger
 
 class SimpleMultiAgentSystem(MultiAgentSystem):
     def __init__(self, max_iterations: int,
