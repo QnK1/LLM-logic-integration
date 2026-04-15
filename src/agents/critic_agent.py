@@ -4,6 +4,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from src.system_prompts.system_prompts import SystemPrompt
 import json
 
+
 class CriticAgent:
     def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite", system_prompt: str = SystemPrompt.CRITIC_PROMPT.value):
         self.model = ChatGoogleGenerativeAI(

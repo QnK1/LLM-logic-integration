@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class SystemPrompt(Enum):
     NLTK_GENERATOR_PROMPT = """
             You are a logic translator for NLTK. 

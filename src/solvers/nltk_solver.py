@@ -3,6 +3,7 @@ from nltk import TableauProver
 from nltk.sem import Expression
 from src.solvers.solver import Solver
 
+
 nltk.download("punkt")
 
 class NLTKSolver(Solver):

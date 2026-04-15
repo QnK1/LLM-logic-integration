@@ -4,6 +4,7 @@ from src.multi_agent_systems.multi_agent_system import MultiAgentSystem
 from src.solvers.solver import Solver
 from src.utils.mas_logger import mas_logger
 
+
 class SimpleMultiAgentSystem(MultiAgentSystem):
     def __init__(self, max_iterations: int,
                  generator_agent: GeneratorAgent,
