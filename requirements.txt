@@ -5,3 +5,4 @@ python-dotenv~=1.2.1
 langchain-google-genai~=4.2.1
 langchain-core~=1.2.24
 z3-solver~=4.16.0.0
+pytest~=9.0.2
