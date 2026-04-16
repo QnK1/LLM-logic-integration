@@ -35,7 +35,7 @@ class Z3Solver:
 
         return is_valid
 
-    def get_detailed_feedback(self) -> dict:
+    def return_status(self) -> dict:
         if self.last_result == z3.unsat:
             core = self.solver.unsat_core()
             core_labels = [str(c) for c in core]

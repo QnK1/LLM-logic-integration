@@ -14,7 +14,7 @@ def test_modus_ponens():
     solver.set_goal(q)
 
     assert solver.prove_goal() is True
-    feedback = solver.get_detailed_feedback()
+    feedback = solver.return_status()
     assert feedback["type"] == "SUCCESS"
 
 
@@ -29,7 +29,7 @@ def test_invalid_inference():
     solver.set_goal(q)
 
     assert solver.prove_goal() is False
-    feedback = solver.get_detailed_feedback()
+    feedback = solver.return_status()
     assert feedback["type"] == "COUNTERMODEL"
     assert "counterexample" in feedback
 
@@ -46,7 +46,7 @@ def test_inconsistent_premises():
     # In classical logic, from contradiction anything follows,
     # but our solver should flag the premises.
     is_valid = solver.prove_goal()
-    feedback = solver.get_detailed_feedback()
+    feedback = solver.return_status()
 
     assert feedback["type"] == "UNSAT_PREMISES"
     assert "p0" in feedback["conflicting_premises_indices"]

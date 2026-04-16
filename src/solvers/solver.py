@@ -13,3 +13,7 @@ class Solver(ABC):
     @abstractmethod
     def prove_goal(self) -> bool:
         pass
+
+    @abstractmethod
+    def return_status(self) -> dict:
+        pass

@@ -24,3 +24,6 @@ class NLTKSolver(Solver):
             raise AttributeError("Both premises and goal must be defined before proving.")
 
         return self.prover.prove(self.goal, self.premises)
+
+    def return_status(self) -> dict:
+        pass
