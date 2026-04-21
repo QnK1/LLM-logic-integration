@@ -18,7 +18,7 @@ class IterativeLogicCorrectionMAS(MultiAgentSystem):
         self.solver = solver
         self.verbose = verbose
 
-    def run(self, sentence: str) -> bool:
+    def run(self, sentence: str) -> dict:
         original_sentence = sentence
         generator_input = sentence
         for i in range(self.max_iterations):
@@ -33,14 +33,19 @@ class IterativeLogicCorrectionMAS(MultiAgentSystem):
 
             critic_response = self.critic_agent.verify_logic(original_sentence, generator_output, solver_status)
 
-            if self.verbose:
-                mas_logger.info(
-                    f"MAS finished the task after {i + 1} iterations, and determined the following result: {result}")
+            if critic_response["status"] == "OK":
+                result = solver_status
 
-            return result
+                if self.verbose:
+                    mas_logger.info(
+                        f"MAS finished the task after {i + 1} iterations, and determined the following result: {result}")
+
+                return result
+
+            generator_input = critic_response
 
         if self.verbose:
             mas_logger.info(
                 f"Maximum number of iterations ({self.max_iterations}) exceeded, MAS reached no conclusions.")
 
-        return None
+        return {}

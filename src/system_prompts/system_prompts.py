@@ -96,12 +96,12 @@ class SystemPrompt(Enum):
         - SYNTAX: If the Solver returned a SYNTAX_ERROR, provide specific instructions on how to fix the NLTK formulas.
 
         OUTPUT CRITERIA:
-        - If any check fails, status is "ERROR".
+        - If any check fails, status is "FAILURE".
         - Provide "feedback" that is actionable for the Generator Agent to fix its mistakes.
 
         OUTPUT FORMAT:
         {{
-          "status": "OK" or "ERROR",
+          "status": "OK" or "FAILURE",
           "reasoning": "Brief explanation of your decision",
           "feedback": "Specific instructions for the Generator or 'None'"
         }}
