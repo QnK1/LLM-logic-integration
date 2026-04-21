@@ -17,11 +17,21 @@ class CriticAgent:
 
         self.prompt = ChatPromptTemplate.from_messages([
             ("system", self.system_prompt),
-            ("human", "ORIGINAL SENTENCE: {original_sentence}\nGENERATED LOGIC: {generated_logic}")
+            ("human", (
+                "ORIGINAL SOURCE TEXT: {original_sentence}\n\n"
+                "GENERATOR'S PROPOSAL (FOL): {generator_logic}\n\n"
+                "SOLVER FEEDBACK (NLTK): {solver_feedback}"
+            ))
         ])
 
         self.chain = self.prompt | self.model | JsonOutputParser()
 
-    def verify_logic(self, original_sentence: str, generated_logic: dict) -> dict:
-        logic_string = json.dumps(generated_logic, indent=2)
-        return self.chain.invoke({"original_sentence": original_sentence, "generated_logic": logic_string})
+    def verify_logic(self, original_sentence: str, generator_output: dict, solver_feedback: dict) -> dict:
+        generator_logic_str = json.dumps(generator_output, indent=2)
+        solver_status_str = json.dumps(solver_feedback, indent=2)
+
+        return self.chain.invoke({
+            "original_sentence": original_sentence,
+            "generator_logic": generator_logic_str,
+            "solver_feedback": solver_status_str
+        })
