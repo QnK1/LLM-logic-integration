@@ -31,6 +31,8 @@ class IterativeLogicCorrectionMAS(MultiAgentSystem):
 
             solver_status = self.solver.return_status(premises, goal)
 
+            critic_response = self.critic_agent.verify_logic(original_sentence, generator_output, solver_status)
+
             if self.verbose:
                 mas_logger.info(
                     f"MAS finished the task after {i + 1} iterations, and determined the following result: {result}")
