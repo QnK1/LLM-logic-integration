@@ -6,7 +6,7 @@ import json
 
 
 class CriticAgent:
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite", system_prompt: str = SystemPrompt.CRITIC_PROMPT.value):
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite", system_prompt: str = SystemPrompt.NLTK_CRITIC_PROMPT.value):
         self.model = ChatGoogleGenerativeAI(
             model=model,
             google_api_key=api_key,

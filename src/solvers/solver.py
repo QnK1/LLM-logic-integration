@@ -15,5 +15,5 @@ class Solver(ABC):
         pass
 
     @abstractmethod
-    def return_status(self) -> dict:
+    def return_status(self, premises: list[str], goal: str) -> dict:
         pass
