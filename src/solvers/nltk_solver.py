@@ -1,5 +1,4 @@
 import re
-
 import nltk
 from nltk import TableauProver, LogicalExpressionException
 from nltk.sem import Expression
@@ -33,8 +32,8 @@ class NLTKSolver(Solver):
             self.set_goal(goal)
 
             all_logic_text = " ".join(premises + [goal])
-            atoms = set(re.findall(r'\b[a-z][a-zA-Z0-9_]*\b', all_logic_text))
-            keywords = {'all', 'exists', 'and', 'or', 'not', 'implies', 'iff'}
+            atoms = set(re.findall(r"\b[a-z][a-zA-Z0-9_]*\b", all_logic_text))
+            keywords = {"all", "exists", "and", "or", "not", "implies", "iff"}
             found_entities = list(atoms - keywords)
 
             is_true = self.prove_goal()
