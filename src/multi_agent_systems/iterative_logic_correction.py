@@ -22,6 +22,9 @@ class IterativeLogicCorrectionMAS(MultiAgentSystem):
         original_sentence = sentence
         generator_input = sentence
         for i in range(self.max_iterations):
+            if self.verbose:
+                mas_logger.info(f"--- Starting Iteration {i + 1} ---")
+
             generator_output = self.generator_agent.create_prompt(generator_input)
             if self.verbose:
                 mas_logger.info(f"Generator output in iteration {i + 1}: {generator_output}")
@@ -30,8 +33,12 @@ class IterativeLogicCorrectionMAS(MultiAgentSystem):
             goal = generator_output["goal"]
 
             solver_status = self.solver.return_status(premises, goal)
+            if self.verbose:
+                mas_logger.info(f"Solver status: {solver_status}")
 
             critic_response = self.critic_agent.verify_logic(original_sentence, generator_output, solver_status)
+            if self.verbose:
+                mas_logger.info(f"Critic response: {critic_response}")
 
             if critic_response["status"] == "OK":
                 result = solver_status
@@ -42,10 +49,14 @@ class IterativeLogicCorrectionMAS(MultiAgentSystem):
 
                 return result
 
+            if self.verbose:
+                mas_logger.warning(f"Iteration {i + 1} rejected. Reason: {critic_response['reasoning']}")
+                mas_logger.info(f"Feedback sent to generator: {critic_response['feedback']}")
+
             generator_input = critic_response
 
         if self.verbose:
-            mas_logger.info(
+            mas_logger.error(
                 f"Maximum number of iterations ({self.max_iterations}) exceeded, MAS reached no conclusions.")
 
         return {}

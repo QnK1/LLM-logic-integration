@@ -31,12 +31,8 @@ class NLTKSolver(Solver):
             self.set_premises(premises)
             self.set_goal(goal)
 
-            all_logic_text = " ".join(premises + [goal])
-            atoms = set(re.findall(r"\b[a-z][a-zA-Z0-9_]*\b", all_logic_text))
-            keywords = {"all", "exists", "and", "or", "not", "implies", "iff"}
-            found_entities = list(atoms - keywords)
-
             is_true = self.prove_goal()
+
 
             neg_goal = self.read_expr(f"-({goal})")
             is_false = self.prover.prove(neg_goal, self.premises)
@@ -51,8 +47,6 @@ class NLTKSolver(Solver):
             return {
                 "status": "SUCCESS",
                 "result": result,
-                "entities": found_entities,
-                "is_consistent": not self.prover.prove(self.read_expr("False"), self.premises)
             }
 
         except LogicalExpressionException as e:
@@ -62,6 +56,7 @@ class NLTKSolver(Solver):
                 "message": str(e)
             }
         except Exception as e:
+            print(e)
             return {
                 "status": "FAILURE",
                 "error_type": "RUNTIME_ERROR",
