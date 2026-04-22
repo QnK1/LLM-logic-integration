@@ -37,17 +37,39 @@ class GeneratorAgent:
 
         self.chain = self.prompt | self.model | JsonOutputParser()
 
-    def create_prompt(self, input_sentence: str) -> dict:
+    def create_prompt(self, input_sentence: str, feedback: str = None, previous_output=None) -> dict:
         """
-        Invokes the LLM chain to translate a natural language sentence into a logical JSON structure.
+        Translates natural language into a logical JSON structure, with optional iterative refinement.
+
+        This method invokes the LLM chain to parse input text into formal logic. If feedback from
+        a CriticAgent is provided, it performs a refinement step by presenting the previous
+        errors and the original context to the model for correction.
 
         Args:
-            input_sentence (str): The natural language text containing facts and a conclusion.
+            input_sentence (str): The original natural language text containing facts and a conclusion.
+            feedback (str, optional): Error messages or logical critiques from the Critic/Solver.
+                Defaults to None.
+            previous_output (dict, optional): The failed logical structure that needs correction.
+                Defaults to None.
 
         Returns:
             dict: A dictionary containing 'premises' (list of strings) and 'goal' (string).
 
-        Example return:
-            {"premises": ["all x.(human(x) -> mortal(x))", "human(socrates)"], "goal": "mortal(socrates)"}
+        Example:
+            Standard call:
+                create_prompt("All men are mortal. Socrates is a man. Is Socrates mortal?")
+
+            Refinement call:
+                create_prompt("All men are mortal...", feedback="Syntax error: missing parenthesis",
+                              previous_output={"premises": ["all x.human(x -> mortal(x)"], "goal": "..."})
         """
+
+        if feedback:
+            refinement_input = (
+                f"Your previous output was: {previous_output}\n"
+                f"The Critic provided the following feedback: {feedback}\n"
+                f"Please correct the logic formulas based on this feedback for the original text: {input_sentence}"
+            )
+            return self.chain.invoke({"input_sentence": refinement_input})
+
         return self.chain.invoke({"input_sentence": input_sentence})

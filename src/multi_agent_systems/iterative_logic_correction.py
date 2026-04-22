@@ -20,12 +20,13 @@ class IterativeLogicCorrectionMAS(MultiAgentSystem):
 
     def run(self, sentence: str) -> dict:
         original_sentence = sentence
-        generator_input = sentence
+        feedback = None
+        last_generator_output = None
         for i in range(self.max_iterations):
             if self.verbose:
                 mas_logger.info(f"--- Starting Iteration {i + 1} ---")
 
-            generator_output = self.generator_agent.create_prompt(generator_input)
+            generator_output = self.generator_agent.create_prompt(original_sentence, feedback, last_generator_output)
             if self.verbose:
                 mas_logger.info(f"Generator output in iteration {i + 1}: {generator_output}")
 
@@ -53,7 +54,8 @@ class IterativeLogicCorrectionMAS(MultiAgentSystem):
                 mas_logger.warning(f"Iteration {i + 1} rejected. Reason: {critic_response['reasoning']}")
                 mas_logger.info(f"Feedback sent to generator: {critic_response['feedback']}")
 
-            generator_input = critic_response
+            feedback = critic_response["feedback"]
+            last_generator_output = generator_output
 
         if self.verbose:
             mas_logger.error(
