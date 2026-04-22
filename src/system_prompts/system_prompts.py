@@ -86,7 +86,7 @@ class SystemPrompt(Enum):
         INPUT PROVIDED:
         1. Original Source Text: The ground truth information.
         2. Generator Output: The natural language response and the FOL (Premises and Goal).
-        3. Solver Feedback: A JSON containing the status (TRUE/FALSE/UNKNOWN), used entities, and consistency flag.
+        3. Solver Feedback: A JSON containing the status (SUCCESS/FAILURE) result if successful (TRUE/FALSE/UNKNOWN) or error_type (SYNTAX_ERROR/RUNTIME_ERROR) and message if unsuccessful.
 
         YOUR EVALUATION TASKS:
         - GROUNDING: Compare the 'entities' list from the Solver with the Source Text. If the Solver used predicates or constants (e.g., 'plato') not found in the source (e.g., only 'socrates'), flag it as a HALLUCINATION.
