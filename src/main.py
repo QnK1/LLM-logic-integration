@@ -10,10 +10,18 @@ from src.solvers.nltk_solver import NLTKSolver
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 
-sentence = "Every human is mortal. Ted is human. Is Ted mortal?"
+sentence = """
+Anyone who was in the Garden and is not a Guard must be a Guest.
+If the Butler is a Guest, then the Butler is not the Assassin.
+If the Butler was in the Garden, then he is not a Guard.
+Everyone is either the Assassin or they are Innocent.
+The Butler was in the Garden.
+All Guests are Innocent.
+Is the Butler innocent?
+"""
 
-generator_agent = GeneratorAgent(api_key, model="gemini-2.5-flash")
-critic_agent = CriticAgent(api_key, model="gemini-2.5-flash")
+generator_agent = GeneratorAgent(api_key, model="gemini-2.5-flash-lite")
+critic_agent = CriticAgent(api_key, model="gemini-2.5-flash-lite")
 solver = NLTKSolver()
 
 # simple_mas = SimpleMultiAgentSystem(5, generator_agent, critic_agent, solver)
