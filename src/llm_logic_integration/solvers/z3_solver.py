@@ -1,5 +1,6 @@
-import z3
 from typing import List, Optional
+
+import z3
 
 
 class Z3Solver:
@@ -22,41 +23,23 @@ class Z3Solver:
     def prove_goal(self) -> bool:
         if self.goal is None:
             raise ValueError("Goal has not been set.")
-
         self.solver.push()
         goal_negation = z3.Not(self.goal)
         self.solver.assert_and_track(goal_negation, "goal_negation")
-
         self.last_result = self.solver.check()
-        is_valid = (self.last_result == z3.unsat)
-
+        is_valid = self.last_result == z3.unsat
         if not is_valid:
             self.solver.pop()
-
         return is_valid
 
     def return_status(self) -> dict:
         if self.last_result == z3.unsat:
             core = self.solver.unsat_core()
             core_labels = [str(c) for c in core]
-
             if "goal_negation" in core_labels:
-                return {
-                    "type": "SUCCESS",
-                    "message": "The proof is logically valid."
-                }
+                return {"type": "SUCCESS", "message": "The proof is logically valid."}
             else:
-                return {
-                    "type": "UNSAT_PREMISES",
-                    "message": "The premises are internally inconsistent.",
-                    "conflicting_premises_indices": [l for l in core_labels if l != "goal_negation"]
-                }
-
+                return {"type": "UNSAT_PREMISES", "message": "Inconsistent premises."}
         elif self.last_result == z3.sat:
-            return {
-                "type": "COUNTERMODEL",
-                "message": "The goal does not follow from the premises.",
-                "counterexample": str(self.solver.model())
-            }
-
-        return {"type": "UNKNOWN", "message": "The solver could not determine a result."}
+            return {"type": "COUNTERMODEL", "counterexample": str(self.solver.model())}
+        return {"type": "UNKNOWN"}

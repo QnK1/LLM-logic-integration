@@ -1,11 +1,11 @@
-import re
 import nltk
-from nltk import TableauProver, LogicalExpressionException
+from nltk import LogicalExpressionException, TableauProver
 from nltk.sem import Expression
-from src.solvers.solver import Solver
 
+from llm_logic_integration.solvers.solver import Solver
 
-nltk.download("punkt")
+nltk.download("punkt", quiet=True)
+
 
 class NLTKSolver(Solver):
     def __init__(self):
@@ -22,8 +22,7 @@ class NLTKSolver(Solver):
 
     def prove_goal(self) -> bool:
         if not self.premises or not self.goal:
-            raise AttributeError("Both premises and goal must be defined before proving.")
-
+            raise AttributeError("Premises and goal must be defined.")
         return self.prover.prove(self.goal, self.premises)
 
     def return_status(self, premises: list[str], goal: str) -> dict:
@@ -32,8 +31,6 @@ class NLTKSolver(Solver):
             self.set_goal(goal)
 
             is_true = self.prove_goal()
-
-
             neg_goal = self.read_expr(f"-({goal})")
             is_false = self.prover.prove(neg_goal, self.premises)
 
@@ -44,21 +41,16 @@ class NLTKSolver(Solver):
             else:
                 result = "UNKNOWN"
 
-            return {
-                "status": "SUCCESS",
-                "result": result,
-            }
-
+            return {"status": "SUCCESS", "result": result}
         except LogicalExpressionException as e:
             return {
                 "status": "FAILURE",
                 "error_type": "SYNTAX_ERROR",
-                "message": str(e)
+                "message": str(e),
             }
         except Exception as e:
-            print(e)
             return {
                 "status": "FAILURE",
                 "error_type": "RUNTIME_ERROR",
-                "message": str(e)
+                "message": str(e),
             }
