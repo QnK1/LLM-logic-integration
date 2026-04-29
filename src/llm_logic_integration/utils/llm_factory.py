@@ -26,7 +26,7 @@ def create_llm(
         )
 
     elif provider == "ollama":
-        from langchain_community.chat_models import ChatOllama
+        from langchain_ollama.chat_models import ChatOllama
 
         return ChatOllama(model=model_name, temperature=temperature, format="json")
 

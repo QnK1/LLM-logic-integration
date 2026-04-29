@@ -1,4 +1,5 @@
 import os
+import sys
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -10,6 +11,13 @@ from llm_logic_integration.agents.logic_verifier_agent import LogicVerifierAgent
 from llm_logic_integration.multi_agent_systems.mas_no_logic import MASNoLogic
 from llm_logic_integration.multi_agent_systems.mas_with_logic import MASWithLogic
 from llm_logic_integration.solvers.nltk_solver import NLTKSolver
+
+logger.remove()
+logger.add(
+    sys.stdout,
+    colorize=True,
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+)
 
 # --- GLOBAL CONFIGURATION ---
 PROVIDER = "ollama"  # Options: "gemini", "openai", "ollama"

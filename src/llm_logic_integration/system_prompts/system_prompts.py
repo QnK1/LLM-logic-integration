@@ -42,8 +42,9 @@ class SystemPrompt(Enum):
         ### STRICT NLTK SYNTAX RULES:
         1. NO NATURAL LANGUAGE: Never include raw English sentences or words outside of predicates. Everything must be a formal logical expression.
         2. CONNECTIVES: You MUST use ONLY these exact symbols: '&' (AND), '|' (OR), '->' (IMPLIES), '-' (NOT). 
-          - NEVER use the English words "and", "or", "not", "is". 
+          - NEVER use the English words "and", "or", "not", "is", "neither", "nor", "either". 
           - NEVER use the letter 'v' or 'V' for OR. You MUST use the pipe symbol '|'.
+          - "Neither A nor B" MUST be written as "-A & -B" or "-(A | B)".
         3. VARIABLES vs CONSTANTS: 
           - Variables MUST be single lowercase letters (e.g., x, y, z).
           - Constants MUST be lowercase words representing specific entities (e.g., penguin, alpha, butler).
@@ -65,16 +66,16 @@ class SystemPrompt(Enum):
           "goal": "dormant(beta)"
         }}
 
-        Text: "System X does not use more power."
+        Text: "System X neither uses more power nor overheats."
         Output: {{
-          "premises": ["-uses_more_power(system_x)"],
+          "premises": ["-uses_more_power(system_x) & -overheats(system_x)"],
           "goal": ""
         }}
 
         ### OPERATIONAL RULES:
         1. Extract facts from the original text as 'premises'.
         2. The final conclusion being checked is the 'goal'.
-        3. If 'feedback' is provided, it means your previous output caused a SYNTAX ERROR. Read the error carefully, paying special attention to illegal characters like 'v' or 'and', and fix the formatting.
+        3. If 'feedback' is provided, it means your previous output caused a SYNTAX ERROR. Read the error carefully, paying special attention to illegal English words (like 'neither', 'nor', 'v', 'and'), and fix the formatting.
     """
 
     VERIFIER_EVALUATOR_PROMPT = """
