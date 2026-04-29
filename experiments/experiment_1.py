@@ -71,14 +71,18 @@ def main():
 
     solver = NLTKSolver()
     logic_verifier = LogicVerifierAgent(
-        provider=PROVIDER, model_name=MODEL_NAME, solver=solver, api_key=api_key
+        provider=PROVIDER,
+        model_name=MODEL_NAME,
+        solver=solver,
+        api_key=api_key,
+        max_retries=8,
     )
 
     mas_no_logic = MASNoLogic(
-        max_iterations=3, generator=generator, critic=critic, arbiter=arbiter
+        max_iterations=5, generator=generator, critic=critic, arbiter=arbiter
     )
     mas_with_logic = MASWithLogic(
-        max_iterations=3,
+        max_iterations=5,
         generator=generator,
         critic=critic,
         logic_verifier=logic_verifier,
