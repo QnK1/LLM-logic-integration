@@ -3,11 +3,11 @@ from abc import ABC, abstractmethod
 
 class Solver(ABC):
     @abstractmethod
-    def set_premises(self, logic_formulas: list[str]) -> None:
+    def set_premises(self, logic_formulas: list) -> None:
         pass
 
     @abstractmethod
-    def set_goal(self, logic_formula: str) -> None:
+    def set_goal(self, logic_formula) -> None:
         pass
 
     @abstractmethod
@@ -15,5 +15,5 @@ class Solver(ABC):
         pass
 
     @abstractmethod
-    def return_status(self, premises: list[str], goal: str) -> dict:
+    def return_status(self) -> dict:
         pass

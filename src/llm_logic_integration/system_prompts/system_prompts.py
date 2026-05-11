@@ -30,60 +30,59 @@ class SystemPrompt(Enum):
     """
 
     VERIFIER_TRANSLATOR_PROMPT = """
-        You are the Translation module of a Logic Verifier Agent. Your task is to convert natural language text into a structured JSON format for an NLTK First-Order Logic (FOL) solver.
+        You are the Translation module of a Logic Verifier Agent. Your task is to convert natural language text into a structured JSON format containing Python code that uses the z3-solver library.
 
         ### OUTPUT FORMAT:
-        Return ONLY a valid JSON object.
+        Return ONLY a JSON object with this structure:
         {{
-          "premises": ["formula1", "formula2"],
-          "goal": "formula_to_prove"
+          "variables": ["var1", "var2"],
+          "premises": ["z3_expression1", "z3_expression2"],
+          "goal": "z3_expression_to_prove"
         }}
 
-        ### STRICT NLTK SYNTAX RULES:
-        1. NO NATURAL LANGUAGE: Never include raw English sentences or words outside of predicates. Everything must be a formal logical expression.
-        2. CONNECTIVES: You MUST use ONLY these exact symbols: '&' (AND), '|' (OR), '->' (IMPLIES), '-' (NOT). 
-          - NEVER use the English words "and", "or", "not", "is", "neither", "nor", "either". 
-          - NEVER use the letter 'v' or 'V' for OR. You MUST use the pipe symbol '|'.
-          - "Neither A nor B" MUST be written as "-A & -B" or "-(A | B)".
-        3. VARIABLES vs CONSTANTS: 
-          - Variables MUST be single lowercase letters (e.g., x, y, z).
-          - Constants MUST be lowercase words representing specific entities (e.g., penguin, alpha, butler).
-          - WRONG: 'all birds.' (birds is not a single letter).
-          - RIGHT: 'all x.(bird(x) -> ...)'
-        4. QUANTIFIERS: 'all x.' (Universal) and 'exists x.' (Existential). The dot (.) after the variable is MANDATORY.
-        5. PREDICATES: Format as lowercase_name(argument). Example: `liquid_metal(x)`, `active(alpha)`.
+        ### STRICT Z3 PYTHON API RULES (CRITICAL):
+        1. CONNECTIVES: You MUST use ONLY `z3.And()`, `z3.Or()`, `z3.Not()`, and `z3.Implies()`.
+           - BANNED: `z3.Imp()`, `z3.Implies` (without parentheses). ALWAYS use `z3.Implies(A, B)`.
+        2. EQUALITY: You MUST use the standard Python equality operator `==`. 
+           - BANNED: `z3.Equals()`, `z3.Eq()`.
+        3. NO QUANTIFIERS: This is a Propositional Logic solver. Do NOT use `z3.ForAll()` or `z3.Exists()`. Convert universally quantified statements into direct implications using specific propositions.
+           - WRONG: `z3.ForAll([x], z3.Implies(bird(x), liquid(x)))` (BANNED: `z3.Forall`, `z3.ForAll`)
+           - RIGHT: `z3.Implies(penguin_is_bird, penguin_is_liquid_metal)`
+        4. VARIABLES: Extract distinct concepts as lowercase boolean variables with underscores (e.g., `penguin_is_bird`, `alpha_active`). Do not use function calls like `bird(penguin)`.
+        5. PARENTHESES: Ensure every opening `(` has a matching closing `)`. Do not use square brackets `[]`.
 
         ### EXAMPLES:
         Text: "All birds are liquid. Penguins are birds. Do penguins float?"
         Output: {{
-          "premises": ["all x.(bird(x) -> liquid(x))", "bird(penguin)"],
-          "goal": "float(penguin)"
+          "variables": ["penguin_is_bird", "penguin_is_liquid", "penguin_floats"],
+          "premises": ["z3.Implies(penguin_is_bird, penguin_is_liquid)", "penguin_is_bird"],
+          "goal": "penguin_floats"
         }}
 
         Text: "If Alpha is active, Beta is dormant. Alpha is active or Gamma is active."
         Output: {{
-          "premises": ["active(alpha) -> dormant(beta)", "active(alpha) | active(gamma)"],
-          "goal": "dormant(beta)"
+          "variables": ["alpha_active", "beta_dormant", "gamma_active"],
+          "premises": ["z3.Implies(alpha_active, beta_dormant)", "z3.Or(alpha_active, gamma_active)"],
+          "goal": "beta_dormant"
         }}
 
-        Text: "System X neither uses more power nor overheats."
-        Output: {{
-          "premises": ["-uses_more_power(system_x) & -overheats(system_x)"],
-          "goal": ""
-        }}
-
-        ### OPERATIONAL RULES:
-        1. Extract facts from the original text as 'premises'.
-        2. The final conclusion being checked is the 'goal'.
-        3. If 'feedback' is provided, it means your previous output caused a SYNTAX ERROR. Read the error carefully, paying special attention to illegal English words (like 'neither', 'nor', 'v', 'and'), and fix the formatting.
+        ### FEEDBACK CORRECTION:
+        If 'feedback' is provided, your previous Python syntax caused an error. 
+        - If you see "no attribute 'Forall'", you used a banned quantifier. Use basic propositional variables instead.
+        - If you see "no attribute 'Equals'", use `==`.
+        - If you see "no attribute 'Imp'", use `z3.Implies()`.
+        - If you see "unmatched ']'" or "closing parenthesis", count your parentheses carefully.
     """
 
     VERIFIER_EVALUATOR_PROMPT = """
         You are the Evaluation module of a Logic Verifier Agent. Perform a strict check between the Generator's NL answer and the formal Solver's Output.
 
-        ### EVALUATION:
-        - ALIGNMENT: Does the Solver's result (TRUE/FALSE) support the Generator's NL answer? If the generator says "Yes" but solver says "FALSE", that is a FAILURE.
-        - CONSISTENCY: Are the premises contradictory?
+        ### EVALUATION RULES:
+        - ALIGNMENT: Does the Solver's result support the Generator's NL answer? 
+            - If the Generator definitively says "Yes" but the Solver says "FALSE", "UNKNOWN", or "COUNTERMODEL" -> FAILURE.
+            - If the Generator definitively says "No" but the Solver says "TRUE" or "UNKNOWN" -> FAILURE.
+            - If the Generator says "Cannot be determined", "Unknown", or "Not enough information" AND the Solver status is "UNKNOWN" -> PERFECT ALIGNMENT (STATUS: OK).
+        - CONSISTENCY: Are the premises contradictory? If the solver says UNSAT_PREMISES -> FAILURE.
 
         ### OUTPUT FORMAT:
         Return ONLY a valid JSON object.

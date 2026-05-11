@@ -1,16 +1,16 @@
-from typing import List, Optional
-
 import z3
 
+from llm_logic_integration.solvers.solver import Solver
 
-class Z3Solver:
+
+class Z3Solver(Solver):
     def __init__(self):
         self.solver = z3.Solver()
-        self.premises: List[z3.BoolRef] = []
-        self.goal: Optional[z3.BoolRef] = None
-        self.last_result: Optional[z3.CheckSatResult] = None
+        self.premises: list[z3.BoolRef] = []
+        self.goal: z3.BoolRef | None = None
+        self.last_result: z3.CheckSatResult | None = None
 
-    def set_premises(self, logic_formulas: List[z3.BoolRef]) -> None:
+    def set_premises(self, logic_formulas: list) -> None:
         self.solver.reset()
         self.premises = logic_formulas
         for i, formula in enumerate(logic_formulas):
