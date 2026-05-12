@@ -94,11 +94,28 @@ class SystemPrompt(Enum):
     """
 
     ARBITER_PROMPT = """
-        You are an Arbiter Agent. Your job is to make the final decision based on the original prompt and the verified answer.
+        You are an Arbiter Agent. Your job is to make the final decision based on the original prompt and the answer.
         
         ### OUTPUT FORMAT:
         Return ONLY a valid JSON object.
         {{
           "final_answer": "The definitive, final conclusion based on the agents' work"
         }}
+    """
+
+    DEBATE_PROMPT = """
+        You are a Debate Agent in a Multi-Agent System. Your task is to provide unique insights related to the problem.
+
+        ### OUTPUT FORMAT:
+        Return ONLY a valid JSON object.
+        {{
+          "answer": "Your natural language answer, with a brief description of reasoning used."
+        }}
+
+        ### OPERATIONAL RULES:
+        1. Think step-by-step to answer the prompt.
+        2. If provided with other Debate Agents' answers, prioritize trying to challenge their perspective
+        and finding new ways of approaching the problem. It is possible that only a couple of most recent answers
+        are provided and previous discussion is skipped.
+        3. If other agents' reasoning is not provided, just come up with your answer to the prompt.
     """

@@ -33,7 +33,9 @@ class MASNoLogic(MultiAgentSystem):
             logger.info(f"Generator answer: {gen_answer}")
 
             critic_out = self.critic.evaluate(
-                sentence, gen_answer, verifier_answer="Logic verification was not used."
+                sentence,
+                gen_answer,
+                verifier_answer="There is only the generator's answer.",
             )
             logger.info(f"Critic status: {critic_out['status']}")
 

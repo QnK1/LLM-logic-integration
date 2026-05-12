@@ -16,7 +16,7 @@ class ArbiterAgent:
                 ("system", SystemPrompt.ARBITER_PROMPT.value),
                 (
                     "human",
-                    "ORIGINAL TEXT: {original_sentence}\nAPPROVED ANSWER DATA: {approved_data}",
+                    "ORIGINAL TEXT: {original_sentence}\nANSWER DATA: {approved_data}",
                 ),
             ]
         )
