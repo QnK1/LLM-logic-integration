@@ -14,16 +14,19 @@ class CriticAgent:
                 ("system", SystemPrompt.CRITIC_PROMPT.value),
                 (
                     "human",
-                    "ORIGINAL TEXT: {original_sentence}\nGENERATOR'S ANSWER: {generator_answer}",
+                    "ORIGINAL TEXT: {original_sentence}\nGENERATOR'S ANSWER: {generator_answer}\n LOGIC VERIFIER'S ANSWER: {verifier_answer}",
                 ),
             ]
         )
         self.chain = self.prompt | self.model | JsonOutputParser()
 
-    def evaluate(self, original_sentence: str, generator_answer: str) -> dict:
+    def evaluate(
+        self, original_sentence: str, generator_answer: str, verifier_answer: str
+    ) -> dict:
         return self.chain.invoke(
             {
                 "original_sentence": original_sentence,
                 "generator_answer": generator_answer,
+                "verifier_answer": verifier_answer,
             }
         )

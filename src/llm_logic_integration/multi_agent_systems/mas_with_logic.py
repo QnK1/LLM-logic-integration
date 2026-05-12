@@ -28,6 +28,8 @@ class MASWithLogic(MultiAgentSystem):
         feedback = None
         last_output = None
 
+        logic_out = {"feedback": "There is no logic verifier answer."}
+
         for i in range(self.max_iterations):
             logger.info(f"[With Logic MAS] --- Iteration {i + 1} ---")
 
@@ -35,7 +37,9 @@ class MASWithLogic(MultiAgentSystem):
             gen_answer = gen_out.get("answer", "")
             logger.info(f"Generator answer: {gen_answer}")
 
-            critic_out = self.critic.evaluate(sentence, gen_answer)
+            critic_out = self.critic.evaluate(
+                sentence, gen_answer, logic_out["feedback"]
+            )
             logger.info(f"Critic status: {critic_out['status']}")
 
             logic_out = self.logic_verifier.verify(sentence, gen_answer)

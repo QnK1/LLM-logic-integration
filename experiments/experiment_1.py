@@ -10,7 +10,7 @@ from llm_logic_integration.agents.generator_agent import GeneratorAgent
 from llm_logic_integration.agents.logic_verifier_agent import LogicVerifierAgent
 from llm_logic_integration.multi_agent_systems.mas_no_logic import MASNoLogic
 from llm_logic_integration.multi_agent_systems.mas_with_logic import MASWithLogic
-from llm_logic_integration.solvers.nltk_solver import NLTKSolver
+from llm_logic_integration.solvers.z3_solver import Z3Solver
 
 logger.remove()
 logger.add(
@@ -19,11 +19,8 @@ logger.add(
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
 )
 
-# --- GLOBAL CONFIGURATION ---
 PROVIDER = "ollama"  # Options: "gemini", "openai", "ollama"
-MODEL_NAME = (
-    "llama3"  # Examples: "gemini-2.5-flash-lite", "gpt-4o-mini", "llama3", "mistral"
-)
+MODEL_NAME = "qwen2.5-coder"
 
 
 def get_api_key(provider: str) -> str | None:
@@ -77,7 +74,7 @@ def main():
     critic = CriticAgent(provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key)
     arbiter = ArbiterAgent(provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key)
 
-    solver = NLTKSolver()
+    solver = Z3Solver()
     logic_verifier = LogicVerifierAgent(
         provider=PROVIDER,
         model_name=MODEL_NAME,

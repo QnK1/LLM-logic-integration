@@ -1,5 +1,6 @@
 import json
 
+import z3
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
@@ -44,6 +45,25 @@ class LogicVerifierAgent:
         )
         self.evaluator_chain = self.evaluator_prompt | self.model | JsonOutputParser()
 
+    def _evaluate_z3_strings(self, translation: dict):
+        """Safely evaluates the LLM's string outputs into actual Z3 objects."""
+        local_env = {"z3": z3}
+
+        for var in translation.get("variables", []):
+            local_env[var] = z3.Bool(var)
+
+        try:
+            premises = [
+                eval(p, {"__builtins__": {}}, local_env)
+                for p in translation.get("premises", [])
+            ]
+            goal = eval(
+                translation.get("goal", "True"), {"__builtins__": {}}, local_env
+            )
+            return premises, goal, None
+        except Exception as e:
+            return None, None, str(e)
+
     def verify(self, original_sentence: str, generator_answer: str) -> dict:
         feedback = "None"
 
@@ -57,21 +77,20 @@ class LogicVerifierAgent:
                 }
             )
 
-            premises = translation.get("premises", [])
-            goal = translation.get("goal", "")
+            # Convert strings to Z3 objects
+            premises, goal, error = self._evaluate_z3_strings(translation)
 
-            solver_status = self.solver.return_status(premises, goal)
-            logger.info(f"[Logic Verifier] Solver status: {solver_status['status']}")
-
-            if (
-                solver_status["status"] == "FAILURE"
-                and solver_status.get("error_type") == "SYNTAX_ERROR"
-            ):
+            if error:
                 logger.warning(
-                    f"[Logic Verifier] Syntax error caught: {solver_status['message']}. Retrying translation."
+                    f"[Logic Verifier] Python Evaluation Error: {error}. Retrying."
                 )
-                feedback = solver_status["message"]
+                feedback = f"Python evaluation failed: {error}. Ensure you are only using valid Z3 Python syntax."
                 continue
+
+            self.solver.set_premises(premises)
+            self.solver.set_goal(goal)
+            solver_status = self.solver.return_status()
+            logger.info(f"[Logic Verifier] Solver status: {solver_status['type']}")
 
             logger.info("[Logic Verifier] Syntax OK, evaluating logical alignment.")
             evaluation = self.evaluator_chain.invoke(
@@ -85,6 +104,6 @@ class LogicVerifierAgent:
         logger.error("[Logic Verifier] Failed to generate valid logic syntax.")
         return {
             "status": "FAILURE",
-            "reasoning": "Could not translate to valid formal logic.",
+            "reasoning": "Could not translate to valid Z3 logic.",
             "feedback": "The logical constraints of the problem are too complex to parse. Try simplifying the answer.",
         }

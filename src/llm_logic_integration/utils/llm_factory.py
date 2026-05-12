@@ -1,15 +1,20 @@
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama.chat_models import ChatOllama
+from langchain_openai import ChatOpenAI
 from pydantic import SecretStr
 
 
 def create_llm(
-    provider: str, model_name: str, api_key: str | None = None, temperature: float = 0.0
+    provider: str,
+    model_name: str,
+    api_key: str | None = None,
+    temperature: float = 0.0,
+    context_window: int = 8192,
 ) -> BaseChatModel:
     provider = provider.lower()
 
     if provider == "gemini":
-        from langchain_google_genai import ChatGoogleGenerativeAI
-
         if not api_key:
             raise ValueError("API key required for Gemini.")
         return ChatGoogleGenerativeAI(
@@ -17,8 +22,6 @@ def create_llm(
         )
 
     elif provider == "openai":
-        from langchain_openai import ChatOpenAI
-
         if not api_key:
             raise ValueError("API key required for OpenAI.")
         return ChatOpenAI(
@@ -26,9 +29,12 @@ def create_llm(
         )
 
     elif provider == "ollama":
-        from langchain_ollama.chat_models import ChatOllama
-
-        return ChatOllama(model=model_name, temperature=temperature, format="json")
+        return ChatOllama(
+            model=model_name,
+            temperature=temperature,
+            format="json",
+            num_ctx=context_window,
+        )
 
     else:
         raise ValueError(f"Unsupported provider: {provider}")
