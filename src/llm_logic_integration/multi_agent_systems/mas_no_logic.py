@@ -45,4 +45,9 @@ class MASNoLogic(MultiAgentSystem):
             last_output = gen_out
 
         logger.error("Max iterations reached.")
-        return {"final_answer": "FAILED_TO_RESOLVE"}
+
+        arbiter_input = {
+            "generator_answer": gen_answer,
+            "critique": critic_out["feedback"],
+        }
+        return self.arbiter.decide(sentence, arbiter_input)
