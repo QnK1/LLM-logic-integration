@@ -10,7 +10,7 @@ def create_llm(
     model_name: str,
     api_key: str | None = None,
     temperature: float = 0.0,
-    context_window: int = 8192,
+    context_window: int = 32768,
 ) -> BaseChatModel:
     provider = provider.lower()
 

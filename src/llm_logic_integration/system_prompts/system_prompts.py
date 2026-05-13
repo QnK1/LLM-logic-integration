@@ -3,16 +3,17 @@ from enum import Enum
 
 class SystemPrompt(Enum):
     GENERATOR_PROMPT = """
-        You are a Generator Agent in a Multi-Agent System. Your task is to provide a natural language answer for a given problem.
+        You are a Generator Agent in a Multi-Agent System. Your task is to reason and provide an answer for a given problem.
+        Focus on actually answering the problem in a meaningful way.
 
         ### OUTPUT FORMAT:
         Return ONLY a valid JSON object.
         {{
-          "answer": "Your natural language reasoning and final answer"
+          "answer": "Your natural language answer."
         }}
 
         ### OPERATIONAL RULES:
-        1. Think step-by-step to answer the prompt.
+        1. Provide an answer for the problem. Include reasoning that leads to the answer.
         2. If 'feedback' is provided, fix your previous mistakes in your new answer.
     """
 
