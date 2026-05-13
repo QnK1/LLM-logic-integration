@@ -52,27 +52,13 @@ class SystemPrompt(Enum):
         4. VARIABLES: Extract distinct concepts as lowercase boolean variables with underscores (e.g., `penguin_is_bird`, `alpha_active`). Do not use function calls like `bird(penguin)`.
         5. PARENTHESES: Ensure every opening `(` has a matching closing `)`. Do not use square brackets `[]`.
 
-        ### EXAMPLES:
-        Text: "All birds are liquid. Penguins are birds. Do penguins float?"
-        Output: {{
-          "variables": ["penguin_is_bird", "penguin_is_liquid", "penguin_floats"],
-          "premises": ["z3.Implies(penguin_is_bird, penguin_is_liquid)", "penguin_is_bird"],
-          "goal": "penguin_floats"
-        }}
-
+        ### EXAMPLE:
         Text: "If Alpha is active, Beta is dormant. Alpha is active or Gamma is active."
         Output: {{
           "variables": ["alpha_active", "beta_dormant", "gamma_active"],
           "premises": ["z3.Implies(alpha_active, beta_dormant)", "z3.Or(alpha_active, gamma_active)"],
           "goal": "beta_dormant"
         }}
-
-        ### FEEDBACK CORRECTION:
-        If 'feedback' is provided, your previous Python syntax caused an error. 
-        - If you see "no attribute 'Forall'", you used a banned quantifier. Use basic propositional variables instead.
-        - If you see "no attribute 'Equals'", use `==`.
-        - If you see "no attribute 'Imp'", use `z3.Implies()`.
-        - If you see "unmatched ']'" or "closing parenthesis", count your parentheses carefully.
     """
 
     VERIFIER_EVALUATOR_PROMPT = """
