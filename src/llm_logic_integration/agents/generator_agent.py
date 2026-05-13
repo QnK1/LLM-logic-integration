@@ -7,7 +7,7 @@ from llm_logic_integration.utils.llm_factory import create_llm
 
 class GeneratorAgent:
     def __init__(self, provider: str, model_name: str, api_key: str | None = None):
-        self.model = create_llm(provider, model_name, api_key, temperature=0.2)
+        self.model = create_llm(provider, model_name, api_key, temperature=0.5)
 
         self.prompt = ChatPromptTemplate.from_messages(
             [
