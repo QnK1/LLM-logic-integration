@@ -1,8 +1,15 @@
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
 
 from llm_logic_integration.system_prompts.system_prompts import SystemPrompt
 from llm_logic_integration.utils.llm_factory import create_llm
+
+
+class DebateOutput(BaseModel):
+    answer: str = Field(
+        description="Your natural language answer, with a brief description of reasoning used."
+    )
 
 
 class DebateAgent:

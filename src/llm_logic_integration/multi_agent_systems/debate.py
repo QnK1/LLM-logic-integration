@@ -1,5 +1,6 @@
 import io
 from collections import deque
+from typing import override
 
 from loguru import logger
 
@@ -24,7 +25,8 @@ class DebateSystem(MultiAgentSystem):
 
         self.buffer = deque(maxlen=buffer_size)
 
-    def run(self, sentence: str) -> dict:
+    @override
+    def run(self, sentence: str) -> str:
         for i in range(self.max_iterations):
             logger.info(f"[Debate System] --- Iteration {i + 1} ---")
 
@@ -38,7 +40,7 @@ class DebateSystem(MultiAgentSystem):
                 self.buffer.append(answer)
 
         prev_discussion = {"discussion": self._get_prev_discussion()}
-        return self.arbiter.decide(sentence, prev_discussion)
+        return self.arbiter.decide(sentence, prev_discussion).final_answer
 
     def _get_prev_discussion(self) -> str | None:
         sb = io.StringIO()

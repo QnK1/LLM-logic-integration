@@ -1,13 +1,37 @@
 import json
+from enum import StrEnum
 
 import z3
-from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
+from pydantic import BaseModel, Field
 
 from llm_logic_integration.solvers.solver import Solver
 from llm_logic_integration.system_prompts.system_prompts import SystemPrompt
 from llm_logic_integration.utils.llm_factory import create_llm
+
+
+class EvaluationStatus(StrEnum):
+    OK = "OK"
+    FAILURE = "FAILURE"
+
+
+class LogicTranslatorOutput(BaseModel):
+    variables: list[str] = Field(
+        description="List of boolean variable names in lowercase with underscores"
+    )
+    premises: list[str] = Field(
+        description="List of valid Z3 Python expressions as strings"
+    )
+    goal: str = Field(description="The final Z3 expression to prove")
+
+
+class LogicEvaluatorOutput(BaseModel):
+    status: EvaluationStatus = Field(description="The evaluation status.")
+    reasoning: str = Field(description="Explanation of the logical check.")
+    feedback: str = Field(
+        description="Specific logical corrections for the Generator if it failed, else 'None'."
+    )
 
 
 class LogicVerifierAgent:
@@ -23,6 +47,9 @@ class LogicVerifierAgent:
         self.solver = solver
         self.max_retries = max_retries
 
+        self.translator_model = self.model.with_structured_output(LogicTranslatorOutput)
+        self.evaluator_model = self.model.with_structured_output(LogicEvaluatorOutput)
+
         self.translator_prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", SystemPrompt.VERIFIER_TRANSLATOR_PROMPT.value),
@@ -32,7 +59,7 @@ class LogicVerifierAgent:
                 ),
             ]
         )
-        self.translator_chain = self.translator_prompt | self.model | JsonOutputParser()
+        self.translator_chain = self.translator_prompt | self.translator_model
 
         self.evaluator_prompt = ChatPromptTemplate.from_messages(
             [
@@ -43,39 +70,38 @@ class LogicVerifierAgent:
                 ),
             ]
         )
-        self.evaluator_chain = self.evaluator_prompt | self.model | JsonOutputParser()
+        self.evaluator_chain = self.evaluator_prompt | self.evaluator_model
 
-    def _evaluate_z3_strings(self, translation: dict):
+    def _evaluate_z3_strings(self, translation: LogicTranslatorOutput):
         """Safely evaluates the LLM's string outputs into actual Z3 objects."""
         local_env = {"z3": z3}
 
-        for var in translation.get("variables", []):
+        for var in translation.variables:
             local_env[var] = z3.Bool(var)
 
         try:
             premises = [
-                eval(p, {"__builtins__": {}}, local_env)
-                for p in translation.get("premises", [])
+                eval(p, {"__builtins__": {}}, local_env) for p in translation.premises
             ]
-            goal = eval(
-                translation.get("goal", "True"), {"__builtins__": {}}, local_env
-            )
+            goal = eval(translation.goal, {"__builtins__": {}}, local_env)
             return premises, goal, None
         except Exception as e:
             return None, None, str(e)
 
-    def verify(self, original_sentence: str, generator_answer: str) -> dict:
+    def verify(
+        self, original_sentence: str, generator_answer: str
+    ) -> LogicEvaluatorOutput:
         feedback = "None"
 
         for i in range(self.max_retries):
             logger.info(f"[Logic Verifier] Translation Attempt {i + 1}")
-            translation = self.translator_chain.invoke(
+            translation: LogicTranslatorOutput = self.translator_chain.invoke(
                 {
                     "original_sentence": original_sentence,
                     "generator_answer": generator_answer,
                     "feedback": feedback,
                 }
-            )
+            )  # ty:ignore[invalid-assignment]
 
             # Convert strings to Z3 objects
             premises, goal, error = self._evaluate_z3_strings(translation)
@@ -99,11 +125,11 @@ class LogicVerifierAgent:
                     "solver_status": json.dumps(solver_status, indent=2),
                 }
             )
-            return evaluation
+            return evaluation  # ty:ignore[invalid-return-type]
 
         logger.error("[Logic Verifier] Failed to generate valid logic syntax.")
-        return {
-            "status": "FAILURE",
-            "reasoning": "Could not translate to valid Z3 logic.",
-            "feedback": "The logical constraints of the problem are too complex to parse. Try simplifying the answer.",
-        }
+        return LogicEvaluatorOutput(
+            status=EvaluationStatus.FAILURE,
+            reasoning="Could not translate to valid Z3 logic.",
+            feedback="The logical constraints of the problem are too complex to parse. Try simplifying the answer.",
+        )

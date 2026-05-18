@@ -1,3 +1,5 @@
+from typing import override
+
 from loguru import logger
 
 from llm_logic_integration.agents.arbiter_agent import ArbiterAgent
@@ -21,7 +23,8 @@ class MASNoLogic(MultiAgentSystem):
         self.critic = critic
         self.arbiter = arbiter
 
-    def run(self, sentence: str) -> dict:
+    @override
+    def run(self, sentence: str) -> str:
         feedback = None
         last_output = None
 
@@ -29,7 +32,7 @@ class MASNoLogic(MultiAgentSystem):
             logger.info(f"[No Logic MAS] --- Iteration {i + 1} ---")
 
             gen_out = self.generator.create_prompt(sentence, feedback, last_output)
-            gen_answer = gen_out.get("answer", "")
+            gen_answer = gen_out.answer
             logger.info(f"Generator answer: {gen_answer}")
 
             critic_out = self.critic.evaluate(
@@ -37,19 +40,19 @@ class MASNoLogic(MultiAgentSystem):
                 gen_answer,
                 verifier_answer="There is only the generator's answer.",
             )
-            logger.info(f"Critic status: {critic_out['status']}")
+            logger.info(f"Critic status: {critic_out.status}")
 
-            if critic_out["status"] == "OK":
-                return self.arbiter.decide(sentence, gen_out)
+            if critic_out.status == "OK":
+                return self.arbiter.decide(sentence, gen_out.model_dump()).final_answer
 
-            logger.warning(f"Critic rejected: {critic_out['reasoning']}")
-            feedback = critic_out["feedback"]
+            logger.warning(f"Critic rejected: {critic_out.reasoning}")
+            feedback = critic_out.feedback
             last_output = gen_out
 
         logger.error("Max iterations reached.")
 
         arbiter_input = {
             "generator_answer": gen_answer,
-            "critique": critic_out["feedback"],
+            "critique": critic_out.feedback,
         }
-        return self.arbiter.decide(sentence, arbiter_input)
+        return self.arbiter.decide(sentence, arbiter_input).final_answer

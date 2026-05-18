@@ -17,9 +17,8 @@ class MASWithLogicAndDebate(MultiAgentSystem):
         self.debate_system = debate_system
         self.arbiter = arbiter_agent
 
-    def run(self, sentence: str) -> dict:
-        logic_mas_out = self.logic_mas.run(sentence)
-        logic_mas_answer = logic_mas_out.get("final_answer", "")
+    def run(self, sentence: str) -> str:
+        logic_mas_answer = self.logic_mas.run(sentence)
 
         debate_in = (
             "Work out an answer based on the user's prompt and a logic-based system's answer.\n"
@@ -27,12 +26,11 @@ class MASWithLogicAndDebate(MultiAgentSystem):
             f"Logic System Answer: {logic_mas_answer}\n"
         )
         debate_out = self.debate_system.run(debate_in)
-        debate_answer = debate_out.get("final_answer", "")
 
         return self.arbiter.decide(
             sentence,
             {
                 "logic_system_answer": logic_mas_answer,
-                "debate_result": debate_answer,
+                "debate_result": debate_out,
             },
-        )
+        ).final_answer
