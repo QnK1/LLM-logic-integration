@@ -1,0 +1,376 @@
+[
+  {
+    "problem_id": "P001",
+    "problem_statement": "I need to fly from JFK to BQN. My budget is strictly $275. The total travel time (including layovers) must not exceed 299 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "JFK",
+        "destination": "BQN",
+        "max_price_usd": 275,
+        "max_time_mins": 299,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "05:44",
+        "arrival_time": "10:04",
+        "total_time_mins": 260,
+        "total_price_usd": 239.12,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P002",
+    "problem_statement": "I need to fly from JFK to RDU. My budget is strictly $117. The total travel time (including layovers) must not exceed 126 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "JFK",
+        "destination": "RDU",
+        "max_price_usd": 117,
+        "max_time_mins": 126,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "08:00",
+        "arrival_time": "09:49",
+        "total_time_mins": 109,
+        "total_price_usd": 101.24,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P003",
+    "problem_statement": "I need to fly from EWR to IAD. My budget is strictly $87. The total travel time (including layovers) must not exceed 79 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "EWR",
+        "destination": "IAD",
+        "max_price_usd": 87,
+        "max_time_mins": 79,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "06:32",
+        "arrival_time": "07:40",
+        "total_time_mins": 68,
+        "total_price_usd": 75.44,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P004",
+    "problem_statement": "I need to fly from EWR to TVC. My budget is strictly $147. The total travel time (including layovers) must not exceed 133 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "EWR",
+        "destination": "TVC",
+        "max_price_usd": 147,
+        "max_time_mins": 133,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "13:55",
+        "arrival_time": "15:50",
+        "total_time_mins": 115,
+        "total_price_usd": 127.28,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P005",
+    "problem_statement": "I need to fly from EWR to CMH. My budget is strictly $122. The total travel time (including layovers) must not exceed 135 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "EWR",
+        "destination": "CMH",
+        "max_price_usd": 122,
+        "max_time_mins": 135,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "11:53",
+        "arrival_time": "13:50",
+        "total_time_mins": 117,
+        "total_price_usd": 105.56,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P006",
+    "problem_statement": "I need to fly from JFK to ABQ. My budget is strictly $310. The total travel time (including layovers) must not exceed 129 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "JFK",
+        "destination": "ABQ",
+        "max_price_usd": 310,
+        "max_time_mins": 129,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "20:58",
+        "arrival_time": "22:50",
+        "total_time_mins": 112,
+        "total_price_usd": 269.12,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P007",
+    "problem_statement": "I need to fly from JFK to PIT. My budget is strictly $105. The total travel time (including layovers) must not exceed 84 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "JFK",
+        "destination": "PIT",
+        "max_price_usd": 105,
+        "max_time_mins": 84,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "17:25",
+        "arrival_time": "18:38",
+        "total_time_mins": 73,
+        "total_price_usd": 90.8,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P008",
+    "problem_statement": "I need to fly from EWR to JAC. My budget is strictly $317. The total travel time (including layovers) must not exceed 166 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "EWR",
+        "destination": "JAC",
+        "max_price_usd": 317,
+        "max_time_mins": 166,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "12:13",
+        "arrival_time": "14:37",
+        "total_time_mins": 144,
+        "total_price_usd": 274.88,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P009",
+    "problem_statement": "I need to fly from EWR to DEN. My budget is strictly $279. The total travel time (including layovers) must not exceed 175 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "EWR",
+        "destination": "DEN",
+        "max_price_usd": 279,
+        "max_time_mins": 175,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "07:27",
+        "arrival_time": "09:59",
+        "total_time_mins": 152,
+        "total_price_usd": 242.6,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P010",
+    "problem_statement": "I need to fly from LGA to MSY. My budget is strictly $221. The total travel time (including layovers) must not exceed 115 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "LGA",
+        "destination": "MSY",
+        "max_price_usd": 221,
+        "max_time_mins": 115,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "18:53",
+        "arrival_time": "20:33",
+        "total_time_mins": 100,
+        "total_price_usd": 191.96,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P011",
+    "problem_statement": "I need to fly from EWR to CAE. My budget is strictly $141. The total travel time (including layovers) must not exceed 160 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "EWR",
+        "destination": "CAE",
+        "max_price_usd": 141,
+        "max_time_mins": 160,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "18:43",
+        "arrival_time": "21:02",
+        "total_time_mins": 139,
+        "total_price_usd": 122.24,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P012",
+    "problem_statement": "I need to fly from EWR to HOU. My budget is strictly $253. The total travel time (including layovers) must not exceed 226 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "EWR",
+        "destination": "HOU",
+        "max_price_usd": 253,
+        "max_time_mins": 226,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "13:06",
+        "arrival_time": "16:22",
+        "total_time_mins": 196,
+        "total_price_usd": 219.32,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P013",
+    "problem_statement": "I need to fly from JFK to DFW. My budget is strictly $250. The total travel time (including layovers) must not exceed 145 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "JFK",
+        "destination": "DFW",
+        "max_price_usd": 250,
+        "max_time_mins": 145,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "16:28",
+        "arrival_time": "18:34",
+        "total_time_mins": 126,
+        "total_price_usd": 216.92,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P014",
+    "problem_statement": "I need to fly from JFK to CMH. My budget is strictly $125. The total travel time (including layovers) must not exceed 149 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "JFK",
+        "destination": "CMH",
+        "max_price_usd": 125,
+        "max_time_mins": 149,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "15:22",
+        "arrival_time": "17:31",
+        "total_time_mins": 129,
+        "total_price_usd": 107.96,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P015",
+    "problem_statement": "I need to fly from JFK to SJC. My budget is strictly $413. The total travel time (including layovers) must not exceed 217 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "JFK",
+        "destination": "SJC",
+        "max_price_usd": 413,
+        "max_time_mins": 217,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "18:14",
+        "arrival_time": "21:22",
+        "total_time_mins": 188,
+        "total_price_usd": 358.28,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P016",
+    "problem_statement": "I need to fly from LGA to MCO. My budget is strictly $189. The total travel time (including layovers) must not exceed 144 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "LGA",
+        "destination": "MCO",
+        "max_price_usd": 189,
+        "max_time_mins": 144,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "06:55",
+        "arrival_time": "09:00",
+        "total_time_mins": 125,
+        "total_price_usd": 164.0,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  },
+  {
+    "problem_id": "P017",
+    "problem_statement": "I need to fly from LGA to SRQ. My budget is strictly $202. The total travel time (including layovers) must not exceed 232 minutes. I can tolerate a maximum of 0 stops. Find a valid flight plan.",
+    "ground_truth": {
+      "solution_exists": true,
+      "constraints": {
+        "origin": "LGA",
+        "destination": "SRQ",
+        "max_price_usd": 202,
+        "max_time_mins": 232,
+        "max_stops": 0
+      },
+      "expected_optimal": {
+        "departure_time": "09:36",
+        "arrival_time": "12:57",
+        "total_time_mins": 201,
+        "total_price_usd": 175.64,
+        "stops": 0,
+        "layover_airport": null
+      }
+    }
+  }
+]
