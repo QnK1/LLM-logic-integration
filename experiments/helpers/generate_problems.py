@@ -9,56 +9,77 @@ import pandas as pd
 def load_and_prep_data(csv_path: Path) -> pd.DataFrame:
     df = pd.read_csv(csv_path)
 
-    df = df.dropna(subset=["dep_time", "arr_time", "distance"])
+    essential_cols = [
+        "Departure Station",
+        "Arrival Destination",
+        "Departure Time",
+        "Arrival Time",
+        "Date of Journey",
+        "Price",
+    ]
+    df = df.dropna(subset=essential_cols)
 
-    def hhmm_to_mins(time_float):
-        if pd.isna(time_float):
+    df["Price"] = pd.to_numeric(
+        df["Price"].astype(str).str.replace(r"[^\d.]", "", regex=True), errors="coerce"
+    )
+    df = df.dropna(subset=["Price"])
+
+    def time_str_to_mins(time_str):
+        if pd.isna(time_str):
             return 0
-        time_int = int(time_float)
-        hours = time_int // 100
-        mins = time_int % 100
-        return hours * 60 + mins
+        parts = str(time_str).split(":")
+        return int(parts[0]) * 60 + int(parts[1])
 
-    df["dep_mins"] = df["dep_time"].apply(hhmm_to_mins)
-    df["arr_mins"] = df["arr_time"].apply(hhmm_to_mins)
+    df["dep_mins"] = df["Departure Time"].apply(time_str_to_mins)
+    df["arr_mins"] = df["Arrival Time"].apply(time_str_to_mins)
 
-    df["price"] = (50 + df["distance"] * 0.12).round(2)
-
-    df["dep_str"] = df["dep_time"].apply(
-        lambda x: f"{int(x) // 100:02d}:{int(x) % 100:02d}"
+    df = df.rename(
+        columns={
+            "Departure Station": "origin",
+            "Arrival Destination": "dest",
+            "Departure Time": "dep_str",
+            "Arrival Time": "arr_str",
+            "Date of Journey": "date",
+            "Price": "price",
+        }
     )
-    df["arr_str"] = df["arr_time"].apply(
-        lambda x: f"{int(x) // 100:02d}:{int(x) % 100:02d}"
-    )
+
+    df = df.drop_duplicates(subset=["date", "origin", "dest", "dep_str", "arr_str"])
 
     return df
 
 
-def find_all_routes(df, origin, dest, min_layover_mins=45, max_layover_mins=300):
+def find_all_routes(df, origin, dest, min_layover_mins=10, max_layover_mins=120):
     routes = []
 
     directs = df[(df["origin"] == origin) & (df["dest"] == dest)]
-    for _, flight in directs.iterrows():
-        duration = flight["arr_mins"] - flight["dep_mins"]
+    for _, train in directs.iterrows():
+        duration = train["arr_mins"] - train["dep_mins"]
         if duration < 0:
             duration += 1440
 
         routes.append(
             {
                 "type": "direct",
-                "stops": 0,
-                "legs": [flight.to_dict()],
-                "total_price": flight["price"],
+                "transfers": 0,
+                "legs": [train.to_dict()],
+                "total_price": train["price"],
                 "total_time_mins": duration,
-                "departure_time": flight["dep_str"],
-                "arrival_time": flight["arr_str"],
+                "departure_time": train["dep_str"],
+                "arrival_time": train["arr_str"],
+                "date": train["date"],
             }
         )
 
     leg1_df = df[df["origin"] == origin].add_prefix("l1_")
     leg2_df = df[df["dest"] == dest].add_prefix("l2_")
 
-    connections = pd.merge(leg1_df, leg2_df, left_on="l1_dest", right_on="l2_origin")
+    connections = pd.merge(
+        leg1_df,
+        leg2_df,
+        left_on=["l1_dest", "l1_date"],
+        right_on=["l2_origin", "l2_date"],
+    )
 
     if not connections.empty:
         connections["layover"] = connections["l2_dep_mins"] - connections["l1_arr_mins"]
@@ -82,12 +103,13 @@ def find_all_routes(df, origin, dest, min_layover_mins=45, max_layover_mins=300)
             routes.append(
                 {
                     "type": "1-stop",
-                    "stops": 1,
+                    "transfers": 1,
                     "total_price": round(conn["l1_price"] + conn["l2_price"], 2),
                     "total_time_mins": total_time,
                     "departure_time": conn["l1_dep_str"],
                     "arrival_time": conn["l2_arr_str"],
-                    "layover_airport": conn["l1_dest"],
+                    "transfer_station": conn["l1_dest"],
+                    "date": conn["l1_date"],
                 }
             )
 
@@ -95,8 +117,8 @@ def find_all_routes(df, origin, dest, min_layover_mins=45, max_layover_mins=300)
 
 
 def generate_problems(df, num_problems=20):
-    airports = df["origin"].unique().tolist() + df["dest"].unique().tolist()
-    airports = list(set(airports))
+    stations = df["origin"].unique().tolist() + df["dest"].unique().tolist()
+    stations = list(set(stations))
 
     problems = []
     attempts = 0
@@ -104,7 +126,7 @@ def generate_problems(df, num_problems=20):
     while len(problems) < num_problems and attempts < 1000:
         attempts += 1
 
-        origin, dest = random.sample(airports, 2)
+        origin, dest = random.sample(stations, 2)
 
         all_routes = find_all_routes(df, origin, dest)
         if not all_routes:
@@ -119,13 +141,14 @@ def generate_problems(df, num_problems=20):
 
         max_price = math.ceil(best_route["total_price"] * 1.15)
         max_time = math.ceil(best_route["total_time_mins"] * 1.15)
-        max_stops = best_route["stops"]
+        max_transfers = best_route["transfers"]
+        travel_date = best_route["date"]
 
         statement = (
-            f"I need to fly from {origin} to {dest}. "
-            f"My budget is strictly ${max_price}. "
-            f"The total travel time (including layovers) must not exceed {max_time} minutes. "
-            f"I can tolerate a maximum of {max_stops} stops. Find a valid flight plan."
+            f"I need to travel by train from {origin} to {dest} on {travel_date}. "
+            f"My budget is strictly £{max_price}. "
+            f"The total travel time (including transfers) must not exceed {max_time} minutes. "
+            f"I can tolerate a maximum of {max_transfers} transfers. Find a valid itinerary."
         )
 
         problem = {
@@ -136,17 +159,18 @@ def generate_problems(df, num_problems=20):
                 "constraints": {
                     "origin": origin,
                     "destination": dest,
-                    "max_price_usd": max_price,
+                    "date": travel_date,
+                    "max_price_gbp": max_price,
                     "max_time_mins": max_time,
-                    "max_stops": max_stops,
+                    "max_transfers": max_transfers,
                 },
                 "expected_optimal": {
                     "departure_time": best_route["departure_time"],
                     "arrival_time": best_route["arrival_time"],
                     "total_time_mins": best_route["total_time_mins"],
-                    "total_price_usd": best_route["total_price"],
-                    "stops": best_route["stops"],
-                    "layover_airport": best_route.get("layover_airport", None),
+                    "total_price_gbp": best_route["total_price"],
+                    "transfers": best_route["transfers"],
+                    "transfer_station": best_route.get("transfer_station", None),
                 },
             },
         }
@@ -158,19 +182,24 @@ def generate_problems(df, num_problems=20):
 
 if __name__ == "__main__":
     PROJECT_ROOT = Path(__file__).parent.parent.parent
-    CSV_PATH = PROJECT_ROOT / "data/flights.csv"
-    OUTPUT_FILE = PROJECT_ROOT / "data/flight_planning_problems.json"
+    CSV_PATH = PROJECT_ROOT / "data/railway.csv"
+    OUTPUT_FILE = PROJECT_ROOT / "data/railway_planning_problems.json"
 
-    print("Loading data...")
-    df = load_and_prep_data(CSV_PATH)
-    print(f"Loaded {len(df)} flights.")
+    print("Loading railway data...")
+    try:
+        df = load_and_prep_data(CSV_PATH)
+        print(f"Loaded {len(df)} unique scheduled trains from transaction logs.")
 
-    print("Generating problems via brute-force search...")
-    generated_problems = generate_problems(df, num_problems=20)
+        print("Generating problems via brute-force search...")
+        generated_problems = generate_problems(df, num_problems=20)
 
-    with open(OUTPUT_FILE, "w") as f:
-        json.dump(generated_problems, f, indent=2)
+        OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    print(
-        f"Successfully generated {len(generated_problems)} problems and saved to {str(OUTPUT_FILE)}."
-    )
+        with open(OUTPUT_FILE, "w") as f:
+            json.dump(generated_problems, f, indent=2)
+
+        print(
+            f"Successfully generated {len(generated_problems)} problems and saved to {str(OUTPUT_FILE)}."
+        )
+    except FileNotFoundError:
+        print(f"Error: Could not find dataset at {CSV_PATH}. Please verify the path.")
