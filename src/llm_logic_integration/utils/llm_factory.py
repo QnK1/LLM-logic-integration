@@ -32,7 +32,6 @@ def create_llm(
         return ChatOllama(
             model=model_name,
             temperature=temperature,
-            format="json",
             num_ctx=context_window,
         )
 
