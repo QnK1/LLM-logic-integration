@@ -1,6 +1,8 @@
+# mas_no_logic.py
 from typing import override
 
 from loguru import logger
+from pydantic import BaseModel
 
 from llm_logic_integration.agents.arbiter_agent import ArbiterAgent
 from llm_logic_integration.agents.critic_agent import CriticAgent
@@ -17,14 +19,20 @@ class MASNoLogic(MultiAgentSystem):
         generator: GeneratorAgent,
         critic: CriticAgent,
         arbiter: ArbiterAgent,
+        force_max_iter: bool = False,
     ):
         super().__init__(max_iterations)
         self.generator = generator
         self.critic = critic
         self.arbiter = arbiter
+        self.force_max_iter = force_max_iter
 
     @override
-    def run(self, sentence: str) -> str:
+    def run(
+        self,
+        sentence: str,
+        output_schema: type[BaseModel],
+    ) -> BaseModel:
         feedback = None
         last_output = None
 
@@ -43,9 +51,15 @@ class MASNoLogic(MultiAgentSystem):
             logger.info(f"Critic status: {critic_out.status}")
 
             if critic_out.status == "OK":
-                return self.arbiter.decide(sentence, gen_out.model_dump()).final_answer
+                if not self.force_max_iter:
+                    return self.arbiter.decide(
+                        sentence, gen_out.model_dump(), output_schema
+                    )
+                logger.info("Critic accepted, but force_max_iter is True. Continuing.")
 
-            logger.warning(f"Critic rejected: {critic_out.reasoning}")
+            if critic_out.status != "OK":
+                logger.warning(f"Critic rejected: {critic_out.reasoning}")
+
             feedback = critic_out.feedback
             last_output = gen_out
 
@@ -55,4 +69,4 @@ class MASNoLogic(MultiAgentSystem):
             "generator_answer": gen_answer,
             "critique": critic_out.feedback,
         }
-        return self.arbiter.decide(sentence, arbiter_input).final_answer
+        return self.arbiter.decide(sentence, arbiter_input, output_schema)

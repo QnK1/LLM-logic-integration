@@ -1,4 +1,6 @@
+# mas_with_logic.py
 from loguru import logger
+from pydantic import BaseModel
 
 from llm_logic_integration.agents.arbiter_agent import ArbiterAgent
 from llm_logic_integration.agents.critic_agent import CriticAgent
@@ -28,7 +30,7 @@ class MASWithLogic(MultiAgentSystem):
         self.logic_verifier = logic_verifier
         self.arbiter = arbiter
 
-    def run(self, sentence: str) -> str:
+    def run(self, sentence: str, output_schema: type[BaseModel]) -> BaseModel:
         feedback = None
         last_output = None
 
@@ -57,8 +59,10 @@ class MASWithLogic(MultiAgentSystem):
 
             if critic_out.status == "OK" and logic_out.status == "OK":
                 return self.arbiter.decide(
-                    sentence, {"generator": gen_out, "logic_verification": logic_out}
-                ).final_answer
+                    sentence,
+                    {"generator": gen_out, "logic_verification": logic_out},
+                    output_schema,
+                )
 
             combined_feedback = ""
             if critic_out.status != "OK":
@@ -78,4 +82,4 @@ class MASWithLogic(MultiAgentSystem):
             "logical_critique": logic_out.feedback,
         }
 
-        return self.arbiter.decide(sentence, arbiter_input).final_answer
+        return self.arbiter.decide(sentence, arbiter_input, output_schema)

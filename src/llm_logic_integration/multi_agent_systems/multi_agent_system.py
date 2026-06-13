@@ -1,4 +1,7 @@
+# multi_agent_system.py
 from abc import ABC, abstractmethod
+
+from pydantic import BaseModel
 
 
 class MultiAgentSystem(ABC):
@@ -6,5 +9,5 @@ class MultiAgentSystem(ABC):
         self.max_iterations = max_iterations
 
     @abstractmethod
-    def run(self, sentence: str) -> str:
+    def run(self, sentence: str, output_schema: type[BaseModel]) -> BaseModel:
         pass

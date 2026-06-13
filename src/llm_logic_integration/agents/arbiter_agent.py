@@ -17,8 +17,6 @@ class ArbiterAgent:
     def __init__(self, provider: str, model_name: str, api_key: str | None = None):
         self.model = create_llm(provider, model_name, api_key, temperature=0.0)
 
-        self.structured_model = self.model.with_structured_output(ArbiterOutput)
-
         self.prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", SystemPrompt.ARBITER_PROMPT.value),
@@ -28,12 +26,19 @@ class ArbiterAgent:
                 ),
             ]
         )
-        self.chain = self.prompt | self.structured_model
 
-    def decide(self, original_sentence: str, approved_data: dict) -> ArbiterOutput:
-        return self.chain.invoke(
+    def decide(
+        self,
+        original_sentence: str,
+        approved_data: dict,
+        output_schema: type[BaseModel] | None = None,
+    ) -> BaseModel:
+        schema = output_schema if output_schema is not None else ArbiterOutput
+        chain = self.prompt | self.model.with_structured_output(schema)
+
+        return chain.invoke(
             {
                 "original_sentence": original_sentence,
                 "approved_data": json.dumps(approved_data, indent=2),
             }
-        )  # ty:ignore[invalid-return-type]
+        )

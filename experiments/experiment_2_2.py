@@ -103,6 +103,17 @@ def main() -> None:
     with open(problems_path, "r", encoding="utf-8") as f:
         problems: list[dict] = json.load(f)
 
+    stats = {
+        name: {
+            "total": 0,
+            "success": 0,
+            "fact_failures": 0,
+            "constraint_failures": 0,
+            "errors": 0,
+        }
+        for name in agents.keys()
+    }
+
     for problem in problems:
         print(f"\n{'=' * 80}")
         print(f"PROBLEM: {problem['problem_id']}")
@@ -115,6 +126,8 @@ def main() -> None:
 
         for name, agent in agents.items():
             print(f"\n>>> Running Agent: [ {name} ]")
+            stats[name]["total"] += 1
+
             try:
                 plan = agent.generate_plan(problem["problem_statement"])
 
@@ -272,10 +285,41 @@ def main() -> None:
                     for error in fact_check["errors"]:
                         print(f"      * {error}")
 
+                fact_ok = fact_check["status"] == "SUCCESS"
+                constraint_ok = constraint_check["status"] == "SUCCESS"
+
+                if fact_ok and constraint_ok:
+                    stats[name]["success"] += 1
+                if not fact_ok:
+                    stats[name]["fact_failures"] += 1
+                if not constraint_ok:
+                    stats[name]["constraint_failures"] += 1
+
             except Exception as e:
                 logger.error(
                     f"Agent {name} failed to process problem {problem['problem_id']}: {e}"
                 )
+                stats[name]["errors"] += 1
+
+    print(f"\n{'=' * 80}")
+    print("EXPERIMENT RESULTS & ACCURACY STATS")
+    print(f"{'=' * 80}")
+
+    for name, data in stats.items():
+        total = data["total"]
+        if total == 0:
+            continue
+
+        success = data["success"]
+        accuracy = (success / total) * 100
+
+        print(f"Agent: {name}")
+        print(f"  - Total Problems Run:  {total}")
+        print(f"  - Overall Success:     {success} ({accuracy:.2f}%)")
+        print(f"  - Fact Failures:       {data['fact_failures']}")
+        print(f"  - Constraint Failures: {data['constraint_failures']}")
+        print(f"  - Execution Errors:    {data['errors']}")
+        print("-" * 40)
 
 
 if __name__ == "__main__":

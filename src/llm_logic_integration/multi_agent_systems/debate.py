@@ -3,6 +3,7 @@ from collections import deque
 from typing import override
 
 from loguru import logger
+from pydantic import BaseModel
 
 from llm_logic_integration.agents.arbiter_agent import ArbiterAgent
 from llm_logic_integration.agents.debate_agent import DebateAgent
@@ -26,7 +27,7 @@ class DebateSystem(MultiAgentSystem):
         self.buffer = deque(maxlen=buffer_size)
 
     @override
-    def run(self, sentence: str) -> str:
+    def run(self, sentence: str, output_schema: type[BaseModel]) -> BaseModel:
         for i in range(self.max_iterations):
             logger.info(f"[Debate System] --- Iteration {i + 1} ---")
 
@@ -40,7 +41,7 @@ class DebateSystem(MultiAgentSystem):
                 self.buffer.append(answer)
 
         prev_discussion = {"discussion": self._get_prev_discussion()}
-        return self.arbiter.decide(sentence, prev_discussion).final_answer
+        return self.arbiter.decide(sentence, prev_discussion, output_schema)
 
     def _get_prev_discussion(self) -> str | None:
         sb = io.StringIO()
