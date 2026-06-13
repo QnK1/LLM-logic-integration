@@ -18,7 +18,7 @@ logger.add(
 )
 
 PROVIDER = "ollama"
-MODEL_NAME = "qwen2.5-coder"
+MODEL_NAME = "qwen2.5:7b-instruct"
 
 ITERATIONS_TO_TEST = [1, 2, 3, 4]
 ITERATIONS_PER_EXPERIMENT = 5
