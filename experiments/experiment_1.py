@@ -39,8 +39,12 @@ class CounterfactualOutput(BaseModel):
 
 
 class MultiHopOutput(BaseModel):
-    is_epsilon_critical: bool = Field(description="True if Epsilon is critical.")
-    is_zeta_functioning: bool = Field(description="True if Zeta is functioning.")
+    is_epsilon_critical: bool | None = Field(
+        description="True if Epsilon is critical, False if Epsilon is not critical, None if it is not possible to decide."
+    )
+    is_zeta_functioning: bool | None = Field(
+        description="True if Zeta is functionin, False if Zeta is not functioning, None if it is not possible to decide."
+    )
 
 
 class ConstraintOutput(BaseModel):
@@ -113,38 +117,11 @@ def main():
         },
     }
 
-    logger.info(f"Initializing agents using {PROVIDER.upper()} model: {MODEL_NAME}")
-
-    generator = GeneratorAgent(
-        provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
-    )
-    critic = CriticAgent(provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key)
-    arbiter = ArbiterAgent(provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key)
-
-    solver = Z3Solver()
-    logic_verifier = LogicVerifierAgent(
-        provider=PROVIDER,
-        model_name=MODEL_NAME,
-        solver=solver,
-        api_key=api_key,
-        max_retries=8,
+    logger.info(
+        f"Initializing experiments using {PROVIDER.upper()} model: {MODEL_NAME}"
     )
 
-    mas_no_logic = MASNoLogic(
-        max_iterations=5, generator=generator, critic=critic, arbiter=arbiter
-    )
-    mas_with_logic = MASWithLogic(
-        max_iterations=5,
-        generator=generator,
-        critic=critic,
-        logic_verifier=logic_verifier,
-        arbiter=arbiter,
-    )
-
-    systems = {
-        "MAS (NO LOGIC)": mas_no_logic,
-        "MAS + LOGIC VERIFIER": mas_with_logic,
-    }
+    system_names = ["MAS (NO LOGIC)", "MAS + LOGIC VERIFIER"]
 
     stats = {
         sys_name: {
@@ -153,7 +130,7 @@ def main():
             "failures": 0,
             "errors": 0,
         }
-        for sys_name in systems.keys()
+        for sys_name in system_names
     }
 
     def check_result(result_dict: dict, truth_dict: dict) -> bool:
@@ -177,12 +154,46 @@ def main():
         print(f"PROMPT: {sentence}")
         print(f"{'=' * 80}")
 
-        for sys_name, system in systems.items():
+        for sys_name in system_names:
             print(f"\n[ RUNNING SYSTEM: {sys_name} ]")
 
             for i in range(ITERATIONS_PER_EXPERIMENT):
                 stats[sys_name]["runs"] += 1
                 try:
+                    generator = GeneratorAgent(
+                        provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
+                    )
+                    critic = CriticAgent(
+                        provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
+                    )
+                    arbiter = ArbiterAgent(
+                        provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
+                    )
+                    solver = Z3Solver()
+                    logic_verifier = LogicVerifierAgent(
+                        provider=PROVIDER,
+                        model_name=MODEL_NAME,
+                        solver=solver,
+                        api_key=api_key,
+                        max_retries=8,
+                    )
+
+                    if sys_name == "MAS (NO LOGIC)":
+                        system = MASNoLogic(
+                            max_iterations=5,
+                            generator=generator,
+                            critic=critic,
+                            arbiter=arbiter,
+                        )
+                    else:
+                        system = MASWithLogic(
+                            max_iterations=5,
+                            generator=generator,
+                            critic=critic,
+                            logic_verifier=logic_verifier,
+                            arbiter=arbiter,
+                        )
+
                     result = system.run(sentence, output_schema=schema)  # ty:ignore[invalid-argument-type]
                     result_dump = result.model_dump()
                     print(f"  Iteration {i + 1} Result: {result_dump}")

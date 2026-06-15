@@ -66,52 +66,39 @@ def main() -> None:
     )
     df = df.drop_duplicates(subset=["date", "origin", "dest", "dep_str", "arr_str"])
 
-    solver = Z3Solver()
-    logic_verifier_agent = LogicVerifierAgent(
-        PROVIDER, MODEL_NAME, solver, api_key, max_retries=5
-    )
-
-    search_tool = create_train_search_tool(df)
-    fact_verification_tool = create_fact_verification_tool(df)
-    constraint_tool = verify_plan_constraints
-    logic_tool = create_logic_verification_tool(logic_verifier_agent)
-
-    base_agent = TravelPlannerAgent(
-        PROVIDER, MODEL_NAME, tools=[search_tool], api_key=api_key
-    )
-    fact_agent = TravelPlannerAgent(
-        PROVIDER,
-        MODEL_NAME,
-        tools=[search_tool, fact_verification_tool],
-        api_key=api_key,
-    )
-    rule_agent = TravelPlannerAgent(
-        PROVIDER, MODEL_NAME, tools=[search_tool, constraint_tool], api_key=api_key
-    )
-    logic_agent = TravelPlannerAgent(
-        PROVIDER, MODEL_NAME, tools=[search_tool, logic_tool], api_key=api_key
-    )
-
-    agents = {
-        "Base": base_agent,
-        "Knowledge Verification": fact_agent,
-        "Rule Verification": rule_agent,
-        "Logic Verification": logic_agent,
-    }
-
     problems_path = Path(__file__).parent.parent / "data/railway_planning_problems.json"
     with open(problems_path, "r", encoding="utf-8") as f:
         problems: list[dict] = json.load(f)
 
     stats = {
-        name: {
+        "Base": {
             "total": 0,
             "success": 0,
             "fact_failures": 0,
             "constraint_failures": 0,
             "errors": 0,
-        }
-        for name in agents.keys()
+        },
+        "Knowledge Verification": {
+            "total": 0,
+            "success": 0,
+            "fact_failures": 0,
+            "constraint_failures": 0,
+            "errors": 0,
+        },
+        "Rule Verification": {
+            "total": 0,
+            "success": 0,
+            "fact_failures": 0,
+            "constraint_failures": 0,
+            "errors": 0,
+        },
+        "Logic Verification": {
+            "total": 0,
+            "success": 0,
+            "fact_failures": 0,
+            "constraint_failures": 0,
+            "errors": 0,
+        },
     }
 
     for problem in problems:
@@ -119,6 +106,39 @@ def main() -> None:
         print(f"PROBLEM: {problem['problem_id']}")
         print(f"PROMPT: {problem['problem_statement']}")
         print(f"{'=' * 80}")
+
+        solver = Z3Solver()
+        logic_verifier_agent = LogicVerifierAgent(
+            PROVIDER, MODEL_NAME, solver, api_key, max_retries=5
+        )
+
+        search_tool = create_train_search_tool(df)
+        fact_verification_tool = create_fact_verification_tool(df)
+        constraint_tool = verify_plan_constraints
+        logic_tool = create_logic_verification_tool(logic_verifier_agent)
+
+        base_agent = TravelPlannerAgent(
+            PROVIDER, MODEL_NAME, tools=[search_tool], api_key=api_key
+        )
+        fact_agent = TravelPlannerAgent(
+            PROVIDER,
+            MODEL_NAME,
+            tools=[search_tool, fact_verification_tool],
+            api_key=api_key,
+        )
+        rule_agent = TravelPlannerAgent(
+            PROVIDER, MODEL_NAME, tools=[search_tool, constraint_tool], api_key=api_key
+        )
+        logic_agent = TravelPlannerAgent(
+            PROVIDER, MODEL_NAME, tools=[search_tool, logic_tool], api_key=api_key
+        )
+
+        agents = {
+            "Base": base_agent,
+            "Knowledge Verification": fact_agent,
+            "Rule Verification": rule_agent,
+            "Logic Verification": logic_agent,
+        }
 
         constraints = problem["ground_truth"]["constraints"]
         origin = constraints["origin"]

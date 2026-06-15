@@ -40,6 +40,11 @@ class CriticAgent:
     def evaluate(
         self, original_sentence: str, generator_answer: str, verifier_answer: str
     ) -> CriticOutput:
+        if hasattr(generator_answer, "model_dump_json"):
+            generator_answer = generator_answer.model_dump_json()  # ty:ignore[call-non-callable]
+        elif not isinstance(generator_answer, str):
+            generator_answer = str(generator_answer)
+
         return self.chain.invoke(
             {
                 "original_sentence": original_sentence,

@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from pydantic import BaseModel, Field
 
+from llm_logic_integration.agents.generator_agent import GeneratorOutput
 from llm_logic_integration.solvers.solver import Solver
 from llm_logic_integration.system_prompts.system_prompts import SystemPrompt
 from llm_logic_integration.utils.llm_factory import create_llm
@@ -73,24 +74,46 @@ class LogicVerifierAgent:
         self.evaluator_chain = self.evaluator_prompt | self.evaluator_model
 
     def _evaluate_z3_strings(self, translation: LogicTranslatorOutput):
-        """Safely evaluates the LLM's string outputs into actual Z3 objects."""
-        local_env = {"z3": z3}
+        class DynamicZ3Env(dict):
+            def __getitem__(self, key):
+                if key not in self:
+                    if key.startswith("__"):
+                        raise KeyError(key)
+                    self[key] = z3.Bool(key)
+                return super().__getitem__(key)
+
+        local_env = DynamicZ3Env()
+        local_env["z3"] = z3
 
         for var in translation.variables:
-            local_env[var] = z3.Bool(var)
+            clean_var = var.strip().replace(" ", "_")
+            local_env[clean_var] = z3.Bool(clean_var)
 
         try:
-            premises = [
-                eval(p, {"__builtins__": {}}, local_env) for p in translation.premises
-            ]
-            goal = eval(translation.goal, {"__builtins__": {}}, local_env)
+            premises = []
+            for p in translation.premises:
+                clean_p = p.replace("`", "").strip()
+                if clean_p:
+                    premises.append(eval(clean_p, {"__builtins__": {}}, local_env))
+
+            clean_goal = translation.goal.replace("`", "").strip()
+            goal = eval(clean_goal, {"__builtins__": {}}, local_env)
+
             return premises, goal, None
+
+        except SyntaxError as e:
+            return None, None, f"Syntax error in Z3 expression: {e}"
         except Exception as e:
             return None, None, str(e)
 
     def verify(
-        self, original_sentence: str, generator_answer: str
+        self, original_sentence: str, generator_answer: str | GeneratorOutput
     ) -> LogicEvaluatorOutput:
+        if hasattr(generator_answer, "model_dump_json"):
+            generator_answer = generator_answer.model_dump_json()  # ty:ignore[call-non-callable]
+        elif not isinstance(generator_answer, str):
+            generator_answer = str(generator_answer)
+
         feedback = "None"
 
         for i in range(self.max_retries):

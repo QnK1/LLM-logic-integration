@@ -33,6 +33,11 @@ class ArbiterAgent:
         approved_data: dict,
         output_schema: type[BaseModel] | None = None,
     ) -> BaseModel:
+        if hasattr(approved_data, "model_dump_json"):
+            approved_data = approved_data.model_dump_json()  # ty:ignore[call-non-callable]
+        elif not isinstance(approved_data, str):
+            approved_data = str(approved_data)  # ty:ignore[invalid-assignment]
+
         schema = output_schema if output_schema is not None else ArbiterOutput
         chain = self.prompt | self.model.with_structured_output(schema)
 
@@ -41,4 +46,4 @@ class ArbiterAgent:
                 "original_sentence": original_sentence,
                 "approved_data": json.dumps(approved_data, indent=2),
             }
-        )
+        )  # ty:ignore[invalid-return-type]

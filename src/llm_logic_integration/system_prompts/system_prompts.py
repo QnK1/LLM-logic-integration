@@ -21,24 +21,17 @@ class SystemPrompt(Enum):
 
         RULES:
         1. PROPOSITIONAL VARIABLES ONLY: Flatten all concepts into simple boolean variables named in `lowercase_with_underscores` (e.g., `penguin_is_bird`). NEVER use functions, arguments, or quantifiers. 
-        2. EXACT MATCHING: Every variable used in your premises or goal MUST first be declared exactly the same way in the `variables` list. Pay strict attention to capitalization.
-        3. ALLOWED SYNTAX: You may ONLY use `z3.And()`, `z3.Or()`, `z3.Not()`, `z3.Implies(A, B)`, and `==`.
+        2. ALLOWED SYNTAX: You may ONLY use `z3.And()`, `z3.Or()`, `z3.Not()`, `z3.Implies(A, B)`, and `==`.
 
-        EXAMPLE:
-        Text: "All cats are made of plasma. Anything made of plasma floats in the air. Whiskers is a cat. Does Whiskers float?"
-        Output: {{
-            "variables": [
-                "whiskers_is_cat", 
-                "whiskers_is_plasma", 
-                "whiskers_floats"
-            ],
-            "premises": [
-                "z3.Implies(whiskers_is_cat, whiskers_is_plasma)",
-                "z3.Implies(whiskers_is_plasma, whiskers_floats)",
-                "whiskers_is_cat"
-            ],
-            "goal": "whiskers_floats"
-        }}
+        EXAMPLE CONCEPTUAL MAPPING:
+        Text: "All cats are made of plasma. Anything made of plasma floats. Whiskers is a cat. Does Whiskers float?"
+        
+        Variables to extract: whiskers_is_cat, whiskers_is_plasma, whiskers_floats
+        Premises to generate:
+        - z3.Implies(whiskers_is_cat, whiskers_is_plasma)
+        - z3.Implies(whiskers_is_plasma, whiskers_floats)
+        - whiskers_is_cat
+        Goal to evaluate: whiskers_floats
     """
 
     VERIFIER_EVALUATOR_PROMPT = """

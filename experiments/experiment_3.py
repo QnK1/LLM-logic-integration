@@ -119,52 +119,11 @@ def main():
 
     logger.info(f"Initializing agents using {PROVIDER.upper()} model: {MODEL_NAME}")
 
-    generator = GeneratorAgent(
-        provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
-    )
-    critic = CriticAgent(provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key)
-    arbiter = ArbiterAgent(provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key)
-
-    debate_agents = [
-        DebateAgent(provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key),
-        DebateAgent(provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key),
+    system_names = [
+        "MULTI-AGENT DEBATE",
+        "MAS + LOGIC VERIFIER",
+        "COMBINED (MAS + VERIFIER + DEBATE)",
     ]
-
-    solver = Z3Solver()
-    logic_verifier = LogicVerifierAgent(
-        provider=PROVIDER,
-        model_name=MODEL_NAME,
-        solver=solver,
-        api_key=api_key,
-        max_retries=8,
-    )
-
-    system_a_debate = DebateSystem(
-        debate_agents=debate_agents,
-        arbiter_agent=arbiter,
-        iterations=2,
-        buffer_size=3,
-    )
-
-    system_b_logic = MASWithLogic(
-        max_iterations=5,
-        generator=generator,
-        critic=critic,
-        logic_verifier=logic_verifier,
-        arbiter=arbiter,
-    )
-
-    system_c_combined = MASWithLogicAndDebate(
-        logic_mas=system_b_logic,
-        debate_system=system_a_debate,
-        arbiter_agent=arbiter,
-    )
-
-    systems = {
-        "MULTI-AGENT DEBATE": system_a_debate,
-        "MAS + LOGIC VERIFIER": system_b_logic,
-        "COMBINED (MAS + VERIFIER + DEBATE)": system_c_combined,
-    }
 
     stats = {
         sys_name: {
@@ -173,7 +132,7 @@ def main():
             "failures": 0,
             "errors": 0,
         }
-        for sys_name in systems.keys()
+        for sys_name in system_names
     }
 
     def check_result(result_dict: dict, truth_dict: dict) -> bool:
@@ -197,12 +156,75 @@ def main():
         print(f"PROMPT: {sentence}")
         print(f"{'=' * 80}")
 
-        for sys_name, system in systems.items():
+        for sys_name in system_names:
             print(f"\n[ RUNNING SYSTEM: {sys_name} ]")
 
             for i in range(ITERATIONS_PER_EXPERIMENT):
                 stats[sys_name]["runs"] += 1
                 try:
+                    generator = GeneratorAgent(
+                        provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
+                    )
+                    critic = CriticAgent(
+                        provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
+                    )
+                    arbiter = ArbiterAgent(
+                        provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
+                    )
+
+                    debate_agents = [
+                        DebateAgent(
+                            provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
+                        ),
+                        DebateAgent(
+                            provider=PROVIDER, model_name=MODEL_NAME, api_key=api_key
+                        ),
+                    ]
+
+                    solver = Z3Solver()
+                    logic_verifier = LogicVerifierAgent(
+                        provider=PROVIDER,
+                        model_name=MODEL_NAME,
+                        solver=solver,
+                        api_key=api_key,
+                        max_retries=8,
+                    )
+
+                    if sys_name == "MULTI-AGENT DEBATE":
+                        system = DebateSystem(
+                            debate_agents=debate_agents,
+                            arbiter_agent=arbiter,
+                            iterations=2,
+                            buffer_size=3,
+                        )
+                    elif sys_name == "MAS + LOGIC VERIFIER":
+                        system = MASWithLogic(
+                            max_iterations=5,
+                            generator=generator,
+                            critic=critic,
+                            logic_verifier=logic_verifier,
+                            arbiter=arbiter,
+                        )
+                    elif sys_name == "COMBINED (MAS + VERIFIER + DEBATE)":
+                        system_a_debate = DebateSystem(
+                            debate_agents=debate_agents,
+                            arbiter_agent=arbiter,
+                            iterations=2,
+                            buffer_size=3,
+                        )
+                        system_b_logic = MASWithLogic(
+                            max_iterations=5,
+                            generator=generator,
+                            critic=critic,
+                            logic_verifier=logic_verifier,
+                            arbiter=arbiter,
+                        )
+                        system = MASWithLogicAndDebate(
+                            logic_mas=system_b_logic,
+                            debate_system=system_a_debate,
+                            arbiter_agent=arbiter,
+                        )
+
                     result = system.run(sentence, output_schema=schema)  # ty:ignore[invalid-argument-type]
                     result_dump = result.model_dump()
                     print(f"  Iteration {i + 1} Result: {result_dump}")
