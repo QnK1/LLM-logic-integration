@@ -11,6 +11,7 @@ def create_llm(
     api_key: str | None = None,
     temperature: float = 0.0,
     context_window: int = 32768,
+    max_tokens: int | None = None,
 ) -> BaseChatModel:
     provider = provider.lower()
 
@@ -18,22 +19,35 @@ def create_llm(
         if not api_key:
             raise ValueError("API key required for Gemini.")
         return ChatGoogleGenerativeAI(
-            model=model_name, google_api_key=api_key, temperature=temperature
+            model=model_name,
+            google_api_key=api_key,
+            temperature=temperature,
+            max_tokens=max_tokens,
         )
 
     elif provider == "openai":
         if not api_key:
             raise ValueError("API key required for OpenAI.")
         return ChatOpenAI(
-            model=model_name, api_key=SecretStr(api_key), temperature=temperature
+            model=model_name,
+            api_key=SecretStr(api_key),
+            temperature=temperature,
         )
 
     elif provider == "ollama":
-        return ChatOllama(
-            model=model_name,
-            temperature=temperature,
-            num_ctx=context_window,
-        )
+        kwargs = {
+            "model": model_name,
+            "temperature": temperature,
+            "num_ctx": context_window,
+            "client_kwargs": {
+                "timeout": 120.0,
+            },
+        }
+
+        if max_tokens is not None:
+            kwargs["num_predict"] = max_tokens
+
+        return ChatOllama(**kwargs)  # ty:ignore[invalid-argument-type]
 
     else:
         raise ValueError(f"Unsupported provider: {provider}")

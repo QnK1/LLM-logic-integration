@@ -35,13 +35,15 @@ class DebateSystem(MultiAgentSystem):
                 prev_discussion = self._get_prev_discussion()
 
                 out = agent.create_prompt(sentence, prev_discussion)
-                answer = out.get("answer", "")
+
+                answer = out.answer
+
                 logger.info(f"Debate agent {agent_i} answer: {answer}")
 
                 self.buffer.append(answer)
 
-        prev_discussion = {"discussion": self._get_prev_discussion()}
-        return self.arbiter.decide(sentence, prev_discussion, output_schema)
+        prev_discussion_dict = {"discussion": self._get_prev_discussion()}
+        return self.arbiter.decide(sentence, prev_discussion_dict, output_schema)
 
     def _get_prev_discussion(self) -> str | None:
         sb = io.StringIO()

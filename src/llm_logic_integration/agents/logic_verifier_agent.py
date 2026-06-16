@@ -6,7 +6,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from llm_logic_integration.agents.generator_agent import GeneratorOutput
 from llm_logic_integration.solvers.solver import Solver
 from llm_logic_integration.system_prompts.system_prompts import SystemPrompt
 from llm_logic_integration.utils.llm_factory import create_llm
@@ -44,7 +43,9 @@ class LogicVerifierAgent:
         api_key: str | None = None,
         max_retries: int = 3,
     ):
-        self.model = create_llm(provider, model_name, api_key, temperature=0.0)
+        self.model = create_llm(
+            provider, model_name, api_key, temperature=0.0, max_tokens=800
+        )
         self.solver = solver
         self.max_retries = max_retries
 
@@ -73,12 +74,33 @@ class LogicVerifierAgent:
         )
         self.evaluator_chain = self.evaluator_prompt | self.evaluator_model
 
+    def _clean_code_string(self, s: str) -> str:
+        if not isinstance(s, str):
+            return str(s)
+
+        s = s.strip()
+
+        if s.startswith("```"):
+            lines = s.split("\n")
+            if len(lines) > 1:
+                lines = lines[1:]
+            if len(lines) > 0 and lines[-1].strip().startswith("```"):
+                lines = lines[:-1]
+            s = "\n".join(lines).strip()
+
+        s = s.replace("`", "")
+
+        if s.lower().startswith("python"):
+            s = s[6:].strip()
+
+        return s
+
     def _evaluate_z3_strings(self, translation: LogicTranslatorOutput):
         class DynamicZ3Env(dict):
             def __getitem__(self, key):
+                if key.startswith("__"):
+                    raise KeyError(key)
                 if key not in self:
-                    if key.startswith("__"):
-                        raise KeyError(key)
                     self[key] = z3.Bool(key)
                 return super().__getitem__(key)
 
@@ -92,11 +114,11 @@ class LogicVerifierAgent:
         try:
             premises = []
             for p in translation.premises:
-                clean_p = p.replace("`", "").strip()
+                clean_p = self._clean_code_string(p)
                 if clean_p:
                     premises.append(eval(clean_p, {"__builtins__": {}}, local_env))
 
-            clean_goal = translation.goal.replace("`", "").strip()
+            clean_goal = self._clean_code_string(translation.goal)
             goal = eval(clean_goal, {"__builtins__": {}}, local_env)
 
             return premises, goal, None
@@ -107,8 +129,9 @@ class LogicVerifierAgent:
             return None, None, str(e)
 
     def verify(
-        self, original_sentence: str, generator_answer: str | GeneratorOutput
+        self, original_sentence: str, generator_answer: str | BaseModel
     ) -> LogicEvaluatorOutput:
+
         if hasattr(generator_answer, "model_dump_json"):
             generator_answer = generator_answer.model_dump_json()  # ty:ignore[call-non-callable]
         elif not isinstance(generator_answer, str):
@@ -118,22 +141,27 @@ class LogicVerifierAgent:
 
         for i in range(self.max_retries):
             logger.info(f"[Logic Verifier] Translation Attempt {i + 1}")
-            translation: LogicTranslatorOutput = self.translator_chain.invoke(
-                {
-                    "original_sentence": original_sentence,
-                    "generator_answer": generator_answer,
-                    "feedback": feedback,
-                }
-            )  # ty:ignore[invalid-assignment]
 
-            # Convert strings to Z3 objects
+            try:
+                translation: LogicTranslatorOutput = self.translator_chain.invoke(
+                    {
+                        "original_sentence": original_sentence,
+                        "generator_answer": generator_answer,
+                        "feedback": feedback,
+                    }
+                )  # ty:ignore[invalid-assignment]
+            except Exception as e:
+                logger.error(f"[Logic Verifier] LLM Execution Failed: {e}")
+                feedback = f"Chain failure: {e}. Try a simpler output."
+                continue
+
             premises, goal, error = self._evaluate_z3_strings(translation)
 
             if error:
                 logger.warning(
                     f"[Logic Verifier] Python Evaluation Error: {error}. Retrying."
                 )
-                feedback = f"Python evaluation failed: {error}. Ensure you are only using valid Z3 Python syntax."
+                feedback = f"Python evaluation failed: {error}. Ensure you are only using valid Z3 Python syntax and strictly NO markdown backticks."
                 continue
 
             self.solver.set_premises(premises)
@@ -142,13 +170,21 @@ class LogicVerifierAgent:
             logger.info(f"[Logic Verifier] Solver status: {solver_status['type']}")
 
             logger.info("[Logic Verifier] Syntax OK, evaluating logical alignment.")
-            evaluation = self.evaluator_chain.invoke(
-                {
-                    "generator_answer": generator_answer,
-                    "solver_status": json.dumps(solver_status, indent=2),
-                }
-            )
-            return evaluation  # ty:ignore[invalid-return-type]
+            try:
+                evaluation = self.evaluator_chain.invoke(
+                    {
+                        "generator_answer": generator_answer,
+                        "solver_status": json.dumps(solver_status, indent=2),
+                    }
+                )
+                return evaluation  # ty:ignore[invalid-return-type]
+            except Exception as e:
+                logger.error(f"[Logic Verifier] Evaluator LLM Failed: {e}")
+                return LogicEvaluatorOutput(
+                    status=EvaluationStatus.FAILURE,
+                    reasoning=f"Evaluator agent crashed: {e}",
+                    feedback="Internal verifier error.",
+                )
 
         logger.error("[Logic Verifier] Failed to generate valid logic syntax.")
         return LogicEvaluatorOutput(
